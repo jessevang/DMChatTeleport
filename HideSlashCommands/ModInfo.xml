@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <xml>
 	<Name value="DMChatTeleport" />
-	<DisplayName value="DM Chat Teleport" />
-	<Description value="Teleport using commands like setbase base and return" />
+	<DisplayName value="DM Chat Teleport and Starterkits" />
+	<Description value="Teleport using commands like setbase base and return. Use command to get a Starterkit" />
 	<Author value="Darkmushu1" />
 	<Version value="1.0.0" />
 </xml>
