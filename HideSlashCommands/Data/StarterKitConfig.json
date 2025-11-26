@@ -1,0 +1,680 @@
+{
+  "StarterKits": [
+    {
+      "Name": "Theif",
+      "Description": "LockPicks + RogueGloves and more",
+      "Items": [
+        {
+          "ItemName": "resourceLockPick",
+          "Count": 50,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookGreatHeistGoldRush",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookGreatHeistGems",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "ammo9mmBulletBall",
+          "Count": 150,
+          "Quality": 1
+        },
+        {
+          "ItemName": "gunHandgunT0PipePistol",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "armorRogueGloves",
+          "Count": 1,
+          "Quality": 5
+        }
+      ]
+    },
+    {
+      "Name": "Farmer",
+      "Description": "Super Corn Farming Starter Kit",
+      "Items": [
+        {
+          "ItemName": "farmPlotBlock",
+          "Count": 20,
+          "Quality": 1
+        },
+        {
+          "ItemName": "resourceSuperCornSeed",
+          "Count": 20,
+          "Quality": 1
+        },
+        {
+          "ItemName": "plantedGraceCorn1Schematic",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "armorFarmerOutfit",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "armorFarmerBoots",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "TreasureHunter",
+      "Description": "Treasure Maps shovel and more",
+      "Items": [
+        {
+          "ItemName": "drinkCanMegaCrush",
+          "Count": 3,
+          "Quality": 1
+        },
+        {
+          "ItemName": "resourceLockPick",
+          "Count": 10,
+          "Quality": 1
+        },
+        {
+          "ItemName": "qt_taylor",
+          "Count": 10,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeToolShovelT1IronShovel",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "meleeWpnSpearT0StoneSpear",
+          "Count": 1,
+          "Quality": 6
+        }
+      ]
+    },
+    {
+      "Name": "SniperAssassin",
+      "Description": "Snipe With silencered Rifle",
+      "Items": [
+        {
+          "ItemName": "gunRifleT1HuntingRifle",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "ammo762mmBulletBall",
+          "Count": 150,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modGunSoundSuppressorSilencer",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modGunScopeLarge",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSniperHeadShot",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "armorAssassinHelmet",
+          "Count": 1,
+          "Quality": 5
+        }
+      ]
+    },
+    {
+      "Name": "TurboRunner",
+      "Description": "Get T6 Running Boots+More",
+      "Items": [
+        {
+          "ItemName": "armorAthleticBoots",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "armorAthleticGloves",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "meleeWpnBladeT1HuntingKnife",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "drinkCanMegaCrush",
+          "Count": 10,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "Miner",
+      "Description": "Lets go Mining",
+      "Items": [
+        {
+          "ItemName": "bookArtOfMiningLuckyStrike",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookArtOfMiningCoffee",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookArtOfMiningDamage",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "armorMinerHelmet",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "armorMinerGloves",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "bookArtOfMiningDamage",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modArmorHelmetLight",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeToolPickT1IronPickaxe",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "drinkJarCoffee",
+          "Count": 10,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "Builder",
+      "Description": "Get NailGun + Base Building Supplies",
+      "Items": [
+        {
+          "ItemName": "meleeToolRepairT3Nailgun",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "frameShapes",
+          "Count": 200,
+          "Quality": 1
+        },
+        {
+          "ItemName": "resourceWood",
+          "Count": 2000,
+          "Quality": 1
+        },
+        {
+          "ItemName": "resourceCobblestones",
+          "Count": 1000,
+          "Quality": 1
+        },
+        {
+          "ItemName": "resourceConcreteMix",
+          "Count": 150,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeToolRepairT0StoneAxe",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "meleeToolShovelT0StoneShovel",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "cntWoodWritableCrate",
+          "Count": 12,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "BowAssassin",
+      "Description": "Assinate with Bows",
+      "Items": [
+        {
+          "ItemName": "gunBowT1IronCrossbow",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "ammoCrossbowBoltIron",
+          "Count": 200,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modGunBowPolymerString",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modGunBipod",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modGunScopeMedium",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "armorAssassinHelmet",
+          "Count": 1,
+          "Quality": 5
+        }
+      ]
+    },
+    {
+      "Name": "MasterLooter",
+      "Description": "More Loots",
+      "Items": [
+        {
+          "ItemName": "armorRogueHelmet",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "resourceLockPick",
+          "Count": 10,
+          "Quality": 1
+        },
+        {
+          "ItemName": "drugJailBreakers",
+          "Count": 2,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "LumberJack",
+      "Description": "Chop Wood or Zombies all the same.",
+      "Items": [
+        {
+          "ItemName": "meleeToolAxeT2SteelAxe",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "tier03Lumberjack01",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "modMeleeWoodSplitter",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modMeleeClubBurningShaft",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "NerdXPRusher",
+      "Description": "Rush XP",
+      "Items": [
+        {
+          "ItemName": "drinkJarGrandpasLearningElixir",
+          "Count": 5,
+          "Quality": 1
+        },
+        {
+          "ItemName": "tier03Nerd01",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modArmorIntellect",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeWpnBatonT2StunBaton",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "SpearMaster",
+      "Description": "You Truly Mastered The Spear",
+      "Items": [
+        {
+          "ItemName": "meleeWpnSpearT1IronSpear",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "bookSpearHunter1Damage",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter2Maintenance",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter3Bleed",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter4KillMove",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter5RapidStrike",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter6PenetratingShaft",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSpearHunter7QuickStrike",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "Pyromaniac",
+      "Description": "Start with Pro Pyro Starter Kit",
+      "Items": [
+        {
+          "ItemName": "thrownAmmoMolotovCocktail",
+          "Count": 100,
+          "Quality": 1
+        },
+        {
+          "ItemName": "ammoArrowFlaming",
+          "Count": 100,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modMeleeClubBurningShaft",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookFiremansAlmanacMolotov",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "gunBowT0PrimitiveBow",
+          "Count": 1,
+          "Quality": 6
+        }
+      ]
+    },
+    {
+      "Name": "SkullCrusher",
+      "Description": "SledgeHammer Master",
+      "Items": [
+        {
+          "ItemName": "meleeWpnSledgeT1IronSledgehammer",
+          "Count": 1,
+          "Quality": 4
+        },
+        {
+          "ItemName": "bookSledgeSagaArmorCrusher",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookSledgeSagaSavageReaper",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "armorBikerGloves",
+          "Count": 1,
+          "Quality": 5
+        }
+      ]
+    },
+    {
+      "Name": "PackMule",
+      "Description": "No base need you are the base",
+      "Items": [
+        {
+          "ItemName": "armorScavengerOutfit",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "modArmorQuadStoragePocket",
+          "Count": 4,
+          "Quality": 1
+        },
+        {
+          "ItemName": "gunMGTOPipeMachineGun",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "ammo762mmBulletBall",
+          "Count": 300,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "CarScavenger",
+      "Description": "Scavage Every Car",
+      "Items": [
+        {
+          "ItemName": "meleeToolSalvageT2Ratchet",
+          "Count": 1,
+          "Quality": 6
+        },
+        {
+          "ItemName": "tier03Scavenger01",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "foodhobostew",
+          "Count": 5,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeWpnSpearT1IronSpear",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "DrunkenFist",
+      "Description": "Drink and Punch",
+      "Items": [
+        {
+          "ItemName": "bookBarBrawling7BoozedUp",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookBarBrawling5AdrenalineHealing",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookBarBrawling1BasicMoves",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "meleeWpnKnucklesT1IronKnuckles",
+          "Count": 1,
+          "Quality": 5
+        },
+        {
+          "ItemName": "drinkJarBeer",
+          "Count": 5,
+          "Quality": 1
+        },
+        {
+          "ItemName": "drinkJarGrandpasMoonShine",
+          "Count": 2,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "BoomstickBrawler",
+      "Description": "Nice good old double barrel shotgun",
+      "Items": [
+        {
+          "ItemName": "gunShotgunT1DoubleBarrel",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "ammoShotgunShell",
+          "Count": 150,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookShotgunMessiahPartyStarter",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookShotgunMessiahDamage",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookShotgunMessiahLimbShot",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "ArmorCommandoGloves",
+          "Count": 1,
+          "Quality": 3
+        }
+      ]
+    },
+    {
+      "Name": "RobotInventor",
+      "Description": "Start with robot Turret",
+      "Items": [
+        {
+          "ItemName": "gunBotT2JunkTurret",
+          "Count": 1,
+          "Quality": 3
+        },
+        {
+          "ItemName": "ammoJunkTurretRegular",
+          "Count": 1000,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookTechJunkie1Damage",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookTechJunkie2Maintenance",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookTechJunkie7Hydraulics",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "Shockstriker",
+      "Description": "Electric Baton what more did you need",
+      "Items": [
+        {
+          "ItemName": "meleeWpnBatonT2StunBaton",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modMeleeStunBatonRepulsor",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookTechJunkie2Maintenance",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookTechJunkie6BatonCharge",
+          "Count": 1,
+          "Quality": 1
+        }
+      ]
+    },
+    {
+      "Name": "Leadstorm",
+      "Description": "Automatic Rifle Type",
+      "Items": [
+        {
+          "ItemName": "gunMGT1AK47",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "bookAutoWeaponsDrumMag",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "modArmorBandolier",
+          "Count": 1,
+          "Quality": 1
+        },
+        {
+          "ItemName": "ammo762mmBulletBall",
+          "Count": 400,
+          "Quality": 1
+        }
+      ]
+    }
+  ]
+}
