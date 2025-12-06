@@ -46,7 +46,7 @@
           "Quality": 1
         },
         {
-          "ItemName": "resourceSuperCornSeed",
+          "ItemName": "plantedGraceCorn1",
           "Count": 20,
           "Quality": 1
         },
@@ -479,18 +479,23 @@
           "Quality": 6
         },
         {
+          "ItemName": "modArmorTripleStoragePocket",
+          "Count": 4,
+          "Quality": 1
+        },
+        {
           "ItemName": "modArmorQuadStoragePocket",
           "Count": 4,
           "Quality": 1
         },
         {
-          "ItemName": "gunMGTOPipeMachineGun",
+          "ItemName": "gunMGT0PipeMachineGun",
           "Count": 1,
-          "Quality": 6
+          "Quality": 3
         },
         {
           "ItemName": "ammo762mmBulletBall",
-          "Count": 300,
+          "Count": 100,
           "Quality": 1
         }
       ]
@@ -671,7 +676,7 @@
         },
         {
           "ItemName": "ammo762mmBulletBall",
-          "Count": 100,
+          "Count": 150,
           "Quality": 1
         }
       ]

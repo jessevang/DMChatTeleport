@@ -14,6 +14,9 @@ public static class CommandHandler
         DataPlayer player = PlayerStorage.Get(steamId);
         player.entityId = entityId;
 
+        // Ensure player record exists and is persisted even if this is the first command they ever use used to prevent players from getting infinite starterkits
+        PlayerStorage.Save();
+
         World world = GameManager.Instance.World;
 
 
@@ -32,10 +35,6 @@ public static class CommandHandler
         // --------------------------------------------------------------------
         bool teleportsEnabled = ConfigManager.Config.TurnOnTeleportCommands;
         bool kitsEnabled = ConfigManager.Config.TurnOnStarterKits;
-
-
-
-
 
         // ====================================================================
         // TELEPORT: SETBASE
@@ -270,11 +269,85 @@ public static class CommandHandler
         if (quality < 1) quality = 1;
         if (quality > 6) quality = 6;
 
-        SdtdConsole.Instance.ExecuteSync(
-            $"give {entityId} {itemName} {count} {quality}",
-            null
+        bool ok = GiveItemViaForcedPickup(entityId, itemName, count, quality);
+
+        if (!ok)
+        {
+            SdtdConsole.Instance.ExecuteSync(
+                $"give {entityId} {itemName} {count} {quality}",
+                null
+            );
+
+            Debug.Log($"[StarterKit] Fallback give: {itemName} x{count} (Q{quality}) to player {entityId}");
+        }
+    }
+
+    private static bool GiveItemViaForcedPickup(int entityId, string itemName, int count, int quality = 1)
+    {
+        if (count <= 0)
+            return false;
+
+        World world = GameManager.Instance.World;
+        if (world == null)
+        {
+            Debug.Log("[StarterKit] World is null; cannot give items.");
+            return false;
+        }
+
+        ClientInfo cInfo = ConnectionManager.Instance.Clients.ForEntityId(entityId);
+        if (cInfo == null)
+        {
+            Debug.Log($"[StarterKit] No ClientInfo for entity {entityId}; cannot give items.");
+            return false;
+        }
+
+        EntityPlayer player = world.GetEntity(entityId) as EntityPlayer;
+        if (player == null || !player.IsSpawned() || player.IsDead())
+        {
+            Debug.Log($"[StarterKit] Player {entityId} not spawned or dead; cannot give items.");
+            return false;
+        }
+
+        ItemValue itemValue = ItemClass.GetItem(itemName);
+        if (itemValue == null)
+        {
+            Debug.Log($"[StarterKit] Invalid item name '{itemName}'.");
+            return false;
+        }
+
+        if (quality < 1) quality = 1;
+        if (quality > 6) quality = 6;
+
+        ItemStack stack = new ItemStack(
+            new ItemValue(itemValue.type, quality, quality, false, null, 1f),
+            count
         );
 
-        Debug.Log($"[StarterKit] Gave {itemName} x{count} (Q{quality}) to player {entityId}");
+        EntityItem entityItem = (EntityItem)EntityFactory.CreateEntity(new EntityCreationData
+        {
+            entityClass = EntityClass.FromString("item"),
+            id = EntityFactory.nextEntityID++,
+            itemStack = stack,
+            pos = player.position,
+            rot = new Vector3(20f, 0f, 20f),
+            lifetime = 60f,
+            belongsPlayerId = entityId
+        });
+
+        world.SpawnEntityInWorld(entityItem);
+
+        cInfo.SendPackage(
+            NetPackageManager.GetPackage<NetPackageEntityCollect>()
+                             .Setup(entityItem.entityId, entityId)
+        );
+
+
+        world.RemoveEntity(entityItem.entityId, EnumRemoveEntityReason.Despawned);
+
+        Debug.Log($"[StarterKit] Forced pickup of {itemName} x{count} (Q{quality}) for player {entityId}.");
+        return true;
     }
 }
+
+
+

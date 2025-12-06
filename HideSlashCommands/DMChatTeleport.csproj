@@ -99,8 +99,10 @@
     <None Include="Config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="License.txt" />
     <Content Include="ModInfo.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
