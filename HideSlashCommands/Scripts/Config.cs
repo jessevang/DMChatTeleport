@@ -8,6 +8,10 @@ namespace DMChatTeleport
         public bool TurnOnTeleportCommands = true;
         public bool TurnOnStarterKits = true;
         public bool TurnOnHideCommandsWithSlashes = true;
+
+        // NEW: shared cooldown for all teleport commands that actually teleport (e.g. /base and /return)
+        // 0 = no cooldown
+        public int TeleportCooldownSeconds = 0;
     }
 
     public static class ConfigManager

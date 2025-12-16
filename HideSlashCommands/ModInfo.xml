@@ -4,5 +4,5 @@
 	<DisplayName value="DM Chat Teleport and Starterkits" />
 	<Description value="Teleport using commands like setbase base and return. Use command to get a Starterkit" />
 	<Author value="Darkmushu1" />
-	<Version value="1.0.2" />
+	<Version value="1.0.3" />
 </xml>

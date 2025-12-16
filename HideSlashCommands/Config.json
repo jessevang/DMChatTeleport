@@ -1,10 +1,6 @@
 {
-  "_teleport_comment": "Enables /setbase, /base, /return teleport Commands",
   "TurnOnTeleportCommands": true,
-
-  "_kits_comment": "Enable starter kits systems",
   "TurnOnStarterKits": true,
-
-  "_slash_comment": "If set to true commands like /base is hidden in all chat but it blocks any other slash commands from other mods and so you can turn this to false to enable / usage from other C# mods but this will make commands appear in chat.",
-  "TurnOnHideCommandsWithSlashes": true
+  "TurnOnHideCommandsWithSlashes": true,
+  "TeleportCooldownSeconds": 0
 }

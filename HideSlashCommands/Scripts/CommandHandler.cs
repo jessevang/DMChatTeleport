@@ -80,6 +80,8 @@ public static class CommandHandler
             }
 
             EntityPlayer ep = world.GetEntity(entityId) as EntityPlayer;
+
+
             if (ep != null)
             {
                 player.returnX = ep.position.x;
@@ -88,7 +90,11 @@ public static class CommandHandler
 
                 player.hasReturn = true;
 
+                if (!TryConsumeTeleportCooldown(entityId, player))
+                    return;
+
                 Teleport(entityId, new Vector3(player.baseX, player.baseY, player.baseZ));
+
 
                 SendServerMessage(entityId, "Teleported to base.");
                 PlayerStorage.Save();
@@ -113,7 +119,11 @@ public static class CommandHandler
                 return;
             }
 
+            if (!TryConsumeTeleportCooldown(entityId, player))
+                return;
+
             Teleport(entityId, new Vector3(player.returnX, player.returnY, player.returnZ));
+
 
             SendServerMessage(entityId, "Returned.");
             player.hasReturn = false;
@@ -347,6 +357,33 @@ public static class CommandHandler
         Debug.Log($"[StarterKit] Forced pickup of {itemName} x{count} (Q{quality}) for player {entityId}.");
         return true;
     }
+
+    private static bool TryConsumeTeleportCooldown(int entityId, DataPlayer player)
+    {
+        int cdSeconds = ConfigManager.Config?.TeleportCooldownSeconds ?? 0;
+        if (cdSeconds <= 0)
+            return true;
+
+        long nowTicks = DateTime.UtcNow.Ticks;
+        long lastTicks = player.LastTeleportUtcTicks;
+
+        if (lastTicks > 0)
+        {
+            TimeSpan elapsed = new TimeSpan(nowTicks - lastTicks);
+            if (elapsed.TotalSeconds < cdSeconds)
+            {
+                int remain = (int)Math.Ceiling(cdSeconds - elapsed.TotalSeconds);
+                SendServerMessage(entityId, $"Teleport is on cooldown. Try again in {remain}s.");
+                return false;
+            }
+        }
+
+        // consume
+        player.LastTeleportUtcTicks = nowTicks;
+        PlayerStorage.Save();
+        return true;
+    }
+
 }
 
 

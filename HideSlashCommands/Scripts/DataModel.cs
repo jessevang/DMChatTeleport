@@ -40,7 +40,10 @@ namespace DMChatTeleport
             // Block tracking
             public int BlocksPlaced = 0;
             public int BlocksUpgraded = 0;
+
+            public long LastTeleportUtcTicks = 0;
         }
+
 
 
         public static class PlayerStorage

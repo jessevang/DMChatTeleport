@@ -37,6 +37,8 @@ Commands:
 /pick Random
 ```
 
+Users can Add/modify the existing starterkits using starterKitConfigUI.html 
+
 ---
 
 ---
@@ -61,6 +63,9 @@ All options are stored in:
 
 ```
 Mods/DMChatTeleport/Config.xml
+
+Use ConfigUI to edit config options in a user interface
+Mods/DMChatTeleport/ConfigUI.xml
 ```
 
 Options include:

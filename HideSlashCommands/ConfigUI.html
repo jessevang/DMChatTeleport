@@ -1,0 +1,271 @@
+﻿<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>DMChatTeleport - ConfigUI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 16px;
+            max-width: 820px;
+        }
+
+        .box {
+            margin: 12px 0;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .small {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        .ok {
+            color: #070;
+        }
+
+        .warn {
+            color: #b00;
+        }
+
+        label {
+            display: inline-block;
+            min-width: 260px;
+            margin: 6px 0;
+        }
+
+        select {
+            width: 320px;
+        }
+
+        input[type="file"] {
+            width: 420px;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        code {
+            background: #f6f6f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <div class="title">DMChatTeleport ConfigUI</div>
+        <div>Instructions: Choose a file to load, update the settings, then click the save button.</div>
+    </div>
+
+    <div class="box">
+        <div class="row">
+            <div><b>Mod folder:</b></div>
+            <code id="pathText">C:\Program Files (x86)\Steam\steamapps\common\7 Days to Die Dedicated Server\Mods\DMChatTeleport</code>
+            <button id="copyPathBtn" type="button">Copy</button>
+            <span id="copyMsg" class="small"></span>
+        </div>
+        <div class="small">
+            Tip: Paste this path into the file picker address bar to jump directly to the folder.
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="row">
+            <label><b>Choose config.json:</b></label>
+            <input id="fileInput" type="file" accept=".json,application/json" />
+            <span id="loadStatus" class="small"></span>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="title" style="font-size:16px;">Settings</div>
+
+        <div>
+            <label>TurnOnTeleportCommands</label>
+            <select id="TurnOnTeleportCommands">
+                <option value="true">true</option>
+                <option value="false">false</option>
+            </select>
+        </div>
+
+        <div>
+            <label>TurnOnStarterKits</label>
+            <select id="TurnOnStarterKits">
+                <option value="true">true</option>
+                <option value="false">false</option>
+            </select>
+        </div>
+
+        <div>
+            <label>TurnOnHideCommandsWithSlashes</label>
+            <select id="TurnOnHideCommandsWithSlashes">
+                <option value="true">true</option>
+                <option value="false">false</option>
+            </select>
+        </div>
+
+        <div>
+            <label>TeleportCooldownSeconds</label>
+            <select id="TeleportCooldownSeconds">
+                <option value="0">0</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="30">30</option>
+                <option value="60">60</option>
+                <option value="120">120</option>
+                <option value="300">300</option>
+            </select>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <button id="saveBtn" type="button">Save</button>
+            <span id="saveStatus" class="small"></span>
+        </div>
+
+        <div class="small">
+            Saving downloads a new <code>config.json</code>. Replace the existing file in the mod folder with it.
+        </div>
+    </div>
+
+    <script>
+        let configObj = {
+            TurnOnTeleportCommands: true,
+            TurnOnStarterKits: true,
+            TurnOnHideCommandsWithSlashes: true,
+            TeleportCooldownSeconds: 0
+        };
+
+        let fileLoaded = false;
+
+        const els = {
+            pathText: document.getElementById("pathText"),
+            copyPathBtn: document.getElementById("copyPathBtn"),
+            copyMsg: document.getElementById("copyMsg"),
+
+            fileInput: document.getElementById("fileInput"),
+            loadStatus: document.getElementById("loadStatus"),
+
+            TurnOnTeleportCommands: document.getElementById("TurnOnTeleportCommands"),
+            TurnOnStarterKits: document.getElementById("TurnOnStarterKits"),
+            TurnOnHideCommandsWithSlashes: document.getElementById("TurnOnHideCommandsWithSlashes"),
+            TeleportCooldownSeconds: document.getElementById("TeleportCooldownSeconds"),
+
+            saveBtn: document.getElementById("saveBtn"),
+            saveStatus: document.getElementById("saveStatus"),
+        };
+
+        function setLoadStatus(msg, ok = true) {
+            els.loadStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
+        }
+
+        function setSaveStatus(msg, ok = true) {
+            els.saveStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
+        }
+
+        function setCopyMsg(msg) {
+            els.copyMsg.innerHTML = `<span class="ok">${msg}</span>`;
+            setTimeout(() => els.copyMsg.innerHTML = "", 1500);
+        }
+
+        function uiFromConfig() {
+            els.TurnOnTeleportCommands.value = String(!!configObj.TurnOnTeleportCommands);
+            els.TurnOnStarterKits.value = String(!!configObj.TurnOnStarterKits);
+            els.TurnOnHideCommandsWithSlashes.value = String(!!configObj.TurnOnHideCommandsWithSlashes);
+
+            const cd = Number(configObj.TeleportCooldownSeconds || 0);
+            els.TeleportCooldownSeconds.value =
+                [...els.TeleportCooldownSeconds.options].some(o => o.value === String(cd))
+                    ? String(cd)
+                    : "0";
+        }
+
+        function configFromUi() {
+            configObj.TurnOnTeleportCommands = els.TurnOnTeleportCommands.value === "true";
+            configObj.TurnOnStarterKits = els.TurnOnStarterKits.value === "true";
+            configObj.TurnOnHideCommandsWithSlashes = els.TurnOnHideCommandsWithSlashes.value === "true";
+            configObj.TeleportCooldownSeconds = Number(els.TeleportCooldownSeconds.value) || 0;
+        }
+
+        els.copyPathBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(els.pathText.textContent);
+                setCopyMsg("Copied!");
+            } catch {
+                setCopyMsg("Copy failed");
+            }
+        });
+
+        els.fileInput.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const obj = JSON.parse(text);
+
+                if (!obj || typeof obj !== "object") {
+                    setLoadStatus("Invalid config.json", false);
+                    return;
+                }
+
+                configObj = { ...configObj, ...obj };
+                uiFromConfig();
+                fileLoaded = true;
+
+                setLoadStatus(`Loaded: ${file.name}`, true);
+                setSaveStatus("");
+            } catch (err) {
+                setLoadStatus("Failed to load file", false);
+            }
+        });
+
+        els.saveBtn.addEventListener("click", () => {
+            if (!fileLoaded) {
+                setSaveStatus("Please load config.json first.", false);
+                return;
+            }
+
+            configFromUi();
+
+            const json = JSON.stringify(configObj, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "config.json";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            URL.revokeObjectURL(url);
+            setSaveStatus("Saved. Replace the existing config.json with the downloaded file.", true);
+        });
+
+        uiFromConfig();
+        setLoadStatus("No file loaded.", false);
+    </script>
+
+</body>
+</html>

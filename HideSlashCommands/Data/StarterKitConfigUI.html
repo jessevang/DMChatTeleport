@@ -1,0 +1,690 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DMChatTeleport - StarterKitConfigUI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; max-width: 1200px; }
+    .box { margin: 12px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+    .title { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
+    .small { font-size: 12px; color: #666; margin-top: 6px; }
+    .ok { color: #070; }
+    .warn { color: #b00; }
+    button { padding: 8px 12px; cursor: pointer; }
+    code { background: #f6f6f6; padding: 2px 6px; border-radius: 4px; }
+    input[type="file"] { width: 460px; }
+    input[type="text"], input[type="number"] { width: 360px; padding: 6px; }
+    textarea { width: 360px; padding: 6px; height: 60px; }
+    select { padding: 6px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .grid { display: grid; grid-template-columns: 360px 1fr; gap: 12px; align-items: start; }
+    .panel { border: 1px solid #eee; border-radius: 8px; padding: 10px; }
+    .panelTitle { font-weight: bold; margin-bottom: 8px; }
+    .list { border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+    .listHeader { display:flex; justify-content:space-between; align-items:center; padding:8px; background:#fafafa; border-bottom:1px solid #eee; }
+    .listBody { max-height: 520px; overflow: auto; }
+    .kitBtn {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid #f0f0f0;
+      background: white;
+      padding: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .kitBtn:hover { background: #f7f7f7; }
+    .kitBtn.active { background: #eef6ff; }
+    .fieldRow { margin: 8px 0; }
+    .fieldLabel { display:block; font-size: 12px; color: #666; margin-bottom: 4px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: top; }
+    th { text-align: left; background: #fafafa; font-size: 12px; color: #333; }
+    .btnSmall { padding: 6px 10px; }
+    .danger { background: #fff0f0; border: 1px solid #ffd0d0; }
+    .right { text-align: right; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#f6f6f6; font-size:12px; }
+
+    /* Typeahead dropdown */
+    .typeaheadWrap { position: relative; width: 360px; }
+    .suggestBox {
+      position: absolute;
+      top: 36px;
+      left: 0;
+      right: 0;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 999;
+      display: none;
+    }
+    .suggestItem {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+    }
+    .suggestItem:hover { background: #f7f7f7; }
+    .muted { color: #888; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <div class="title">StarterKitConfigUI</div>
+    <div>Instructions: Choose a file to load, update the settings, then click the save button.</div>
+  </div>
+
+  <div class="box">
+    <div class="row">
+      <div><b>Starter kit file:</b></div>
+      <code id="kitPathText">C:\Program Files (x86)\Steam\steamapps\common\7 Days to Die Dedicated Server\Mods\DMChatTeleport\Data\</code>
+      <button id="copyKitPathBtn" type="button">Copy</button>
+      <span id="copyKitMsg" class="small"></span>
+    </div>
+    <div class="small">Tip: Paste the path into the file picker address bar to jump directly to the folder.</div>
+  </div>
+
+  <div class="box">
+    <div class="row">
+      <label><b>Choose StarterKitConfig.json:</b></label>
+      <input id="fileInput" type="file" accept=".json,application/json" />
+      <span id="loadStatus" class="small"></span>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <label><b>Optional: Load ItemIndex.json for search suggestions:</b></label>
+      <input id="itemIndexInput" type="file" accept=".json,application/json" />
+      <span id="indexStatus" class="small"></span>
+    </div>
+
+    <div class="small">
+      Item search is “type to search”. It does not list items unless you start typing.
+      Loading ItemIndex.json enables accurate suggestions (recommended for 10k+ items).
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Left: kits list -->
+    <div class="panel">
+      <div class="panelTitle">Starter Kits</div>
+
+      <div class="list">
+        <div class="listHeader">
+          <span class="pill" id="kitCountPill">0 kits</span>
+          <button id="addKitBtn" class="btnSmall" type="button">Add Kit</button>
+        </div>
+        <div class="listBody" id="kitList"></div>
+      </div>
+
+      <div class="small" id="leftHint" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Right: editor -->
+    <div class="panel">
+      <div class="panelTitle">Editor</div>
+
+      <div id="noSelection" class="small muted">Load a file, then select a kit on the left.</div>
+
+      <div id="editor" style="display:none;">
+        <div class="fieldRow">
+          <span class="fieldLabel">Class Name (no spaces)</span>
+          <input id="kitName" type="text" placeholder="Example: Thief" />
+          <div class="small" id="nameMsg"></div>
+        </div>
+
+        <div class="fieldRow">
+          <span class="fieldLabel">Description (optional)</span>
+          <textarea id="kitDesc" placeholder="Example: Lockpicks + Rogue Gloves and more"></textarea>
+        </div>
+
+        <div class="row" style="justify-content: space-between; margin: 10px 0;">
+          <div class="small" id="itemsMsg"></div>
+          <div class="row">
+            <button id="addItemBtn" class="btnSmall" type="button">Add Item</button>
+            <button id="deleteKitBtn" class="btnSmall danger" type="button">Delete Kit</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 420px;">Item ID (type to search)</th>
+              <th style="width: 120px;">Count</th>
+              <th style="width: 120px;">Quality (1–6)</th>
+              <th class="right" style="width: 120px;">Remove</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTable"></tbody>
+        </table>
+
+        <div class="row" style="margin-top: 12px;">
+          <button id="saveBtn" type="button">Save</button>
+          <span id="saveStatus" class="small"></span>
+        </div>
+
+        <div class="small">
+          Saving downloads a new <code>StarterKitConfig.json</code>. Replace the existing file in the mod folder with it.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---------------------------
+  // State
+  // ---------------------------
+  let fileLoaded = false;
+  let dataObj = { StarterKits: [] };
+  let selectedIndex = -1;
+  let itemIndex = null; // array of strings, optional
+  const MAX_SUGGEST = 25;
+
+  // ---------------------------
+  // Elements
+  // ---------------------------
+  const els = {
+    kitPathText: document.getElementById("kitPathText"),
+    copyKitPathBtn: document.getElementById("copyKitPathBtn"),
+    copyKitMsg: document.getElementById("copyKitMsg"),
+
+    fileInput: document.getElementById("fileInput"),
+    loadStatus: document.getElementById("loadStatus"),
+
+    itemIndexInput: document.getElementById("itemIndexInput"),
+    indexStatus: document.getElementById("indexStatus"),
+
+    kitCountPill: document.getElementById("kitCountPill"),
+    kitList: document.getElementById("kitList"),
+    addKitBtn: document.getElementById("addKitBtn"),
+    leftHint: document.getElementById("leftHint"),
+
+    noSelection: document.getElementById("noSelection"),
+    editor: document.getElementById("editor"),
+
+    kitName: document.getElementById("kitName"),
+    kitDesc: document.getElementById("kitDesc"),
+    nameMsg: document.getElementById("nameMsg"),
+
+    itemsMsg: document.getElementById("itemsMsg"),
+    itemsTable: document.getElementById("itemsTable"),
+    addItemBtn: document.getElementById("addItemBtn"),
+    deleteKitBtn: document.getElementById("deleteKitBtn"),
+
+    saveBtn: document.getElementById("saveBtn"),
+    saveStatus: document.getElementById("saveStatus"),
+  };
+
+  // ---------------------------
+  // Helpers
+  // ---------------------------
+  function setStatus(el, msg, ok=true) {
+    el.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
+  }
+
+  function copyToClipboard(text, msgEl) {
+    navigator.clipboard.writeText(text).then(() => {
+      msgEl.innerHTML = `<span class="ok">Copied!</span>`;
+      setTimeout(() => msgEl.innerHTML = "", 1500);
+    }).catch(() => {
+      msgEl.innerHTML = `<span class="warn">Copy failed</span>`;
+      setTimeout(() => msgEl.innerHTML = "", 1500);
+    });
+  }
+
+  function normalizeStarterKitData(obj) {
+    // Ensure correct shape
+    if (!obj || typeof obj !== "object") return { StarterKits: [] };
+    if (!Array.isArray(obj.StarterKits)) obj.StarterKits = [];
+    obj.StarterKits = obj.StarterKits.map(k => {
+      const kk = (k && typeof k === "object") ? k : {};
+      if (!Array.isArray(kk.Items)) kk.Items = [];
+      return {
+        Name: String(kk.Name ?? ""),
+        Description: String(kk.Description ?? ""),
+        Items: kk.Items.map(it => ({
+          ItemName: String(it?.ItemName ?? ""),
+          Count: Number(it?.Count ?? 1) || 1,
+          Quality: clampInt(Number(it?.Quality ?? 1) || 1, 1, 6)
+        }))
+      };
+    });
+    return obj;
+  }
+
+  function clampInt(n, min, max) {
+    n = Math.floor(Number(n) || min);
+    if (n < min) n = min;
+    if (n > max) n = max;
+    return n;
+  }
+
+  function validKitName(name) {
+    // no spaces; allow letters numbers underscore only
+    return /^[A-Za-z0-9_]+$/.test(name);
+  }
+
+  function updateKitCount() {
+    const n = dataObj.StarterKits.length;
+    els.kitCountPill.textContent = `${n} kit${n === 1 ? "" : "s"}`;
+  }
+
+  function renderKitList() {
+    els.kitList.innerHTML = "";
+    dataObj.StarterKits.forEach((kit, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "kitBtn" + (idx === selectedIndex ? " active" : "");
+      btn.type = "button";
+      const name = kit.Name?.trim() ? kit.Name.trim() : "(Unnamed Kit)";
+      const itemCount = kit.Items?.length ?? 0;
+      btn.textContent = `${name}  (${itemCount} item${itemCount === 1 ? "" : "s"})`;
+      btn.addEventListener("click", () => {
+        selectedIndex = idx;
+        renderKitList();
+        showEditorForSelected();
+      });
+      els.kitList.appendChild(btn);
+    });
+
+    els.leftHint.textContent = fileLoaded
+      ? "Select a kit to edit it."
+      : "Load StarterKitConfig.json to begin.";
+  }
+
+  function showEditorForSelected() {
+    if (!fileLoaded || selectedIndex < 0 || selectedIndex >= dataObj.StarterKits.length) {
+      els.noSelection.style.display = "block";
+      els.editor.style.display = "none";
+      return;
+    }
+    els.noSelection.style.display = "none";
+    els.editor.style.display = "block";
+
+    const kit = dataObj.StarterKits[selectedIndex];
+    els.kitName.value = kit.Name ?? "";
+    els.kitDesc.value = kit.Description ?? "";
+
+    renderItemsTable();
+    validateCurrentKit();
+  }
+
+  function validateCurrentKit() {
+    if (selectedIndex < 0) return true;
+    const kit = dataObj.StarterKits[selectedIndex];
+
+    const name = (els.kitName.value || "").trim();
+    const itemsCount = kit.Items?.length ?? 0;
+
+    let ok = true;
+
+    if (!name) {
+      els.nameMsg.innerHTML = `<span class="warn">Name is required.</span>`;
+      ok = false;
+    } else if (!validKitName(name)) {
+      els.nameMsg.innerHTML = `<span class="warn">No spaces. Use only letters, numbers, underscore.</span>`;
+      ok = false;
+    } else {
+      els.nameMsg.innerHTML = `<span class="ok">OK</span>`;
+    }
+
+    if (itemsCount < 1) {
+      els.itemsMsg.innerHTML = `<span class="warn">Each class needs at least 1 item added.</span>`;
+      ok = false;
+    } else {
+      els.itemsMsg.innerHTML = `<span class="ok">${itemsCount} item${itemsCount === 1 ? "" : "s"}</span>`;
+    }
+
+    return ok;
+  }
+
+  // ---------------------------
+  // Typeahead (no full listing)
+  // ---------------------------
+  function createTypeaheadInput(initialValue, onPick, onChange) {
+    const wrap = document.createElement("div");
+    wrap.className = "typeaheadWrap";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = initialValue || "";
+    input.placeholder = itemIndex ? "Type to search (e.g. gunRifle...)" : "Type item id (suggestions not loaded)";
+    input.style.width = "360px";
+
+    const box = document.createElement("div");
+    box.className = "suggestBox";
+
+    function hideBox() { box.style.display = "none"; box.innerHTML = ""; }
+    function showBox() { box.style.display = "block"; }
+
+    function renderSuggestions(q) {
+      if (!itemIndex || !Array.isArray(itemIndex)) { hideBox(); return; }
+      q = (q || "").trim();
+      if (q.length < 2) { hideBox(); return; } // only show after typing 2+ chars
+
+      const qLower = q.toLowerCase();
+
+      // filter + limit (fast enough for 10k+)
+      const matches = [];
+      for (let i = 0; i < itemIndex.length; i++) {
+        const id = itemIndex[i];
+        if (!id) continue;
+        if (id.toLowerCase().includes(qLower)) {
+          matches.push(id);
+          if (matches.length >= MAX_SUGGEST) break;
+        }
+      }
+
+      if (matches.length === 0) { hideBox(); return; }
+
+      box.innerHTML = "";
+      matches.forEach(id => {
+        const div = document.createElement("div");
+        div.className = "suggestItem";
+        div.textContent = id;
+        div.addEventListener("mousedown", (e) => {
+          // mousedown so it triggers before input blur
+          e.preventDefault();
+          input.value = id;
+          hideBox();
+          onPick(id);
+        });
+        box.appendChild(div);
+      });
+      showBox();
+    }
+
+    input.addEventListener("input", () => {
+      onChange(input.value);
+      renderSuggestions(input.value);
+    });
+
+    input.addEventListener("focus", () => {
+      renderSuggestions(input.value);
+    });
+
+    input.addEventListener("blur", () => {
+      // slight delay so click registers
+      setTimeout(() => hideBox(), 150);
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(box);
+    return wrap;
+  }
+
+  // ---------------------------
+  // Items table render
+  // ---------------------------
+  function renderItemsTable() {
+    els.itemsTable.innerHTML = "";
+    const kit = dataObj.StarterKits[selectedIndex];
+    if (!kit.Items) kit.Items = [];
+
+    kit.Items.forEach((it, rowIdx) => {
+      const tr = document.createElement("tr");
+
+      // ItemName (typeahead)
+      const tdName = document.createElement("td");
+      const ta = createTypeaheadInput(
+        it.ItemName,
+        (picked) => {
+          it.ItemName = picked;
+          validateCurrentKit();
+        },
+        (typed) => {
+          it.ItemName = typed;
+          // don't block typing; validate on save
+        }
+      );
+      tdName.appendChild(ta);
+
+      // Count
+      const tdCount = document.createElement("td");
+      const count = document.createElement("input");
+      count.type = "number";
+      count.min = "1";
+      count.value = String(clampInt(it.Count, 1, 999999));
+      count.style.width = "100px";
+      count.addEventListener("input", () => {
+        it.Count = clampInt(count.value, 1, 999999);
+      });
+      tdCount.appendChild(count);
+
+      // Quality
+      const tdQ = document.createElement("td");
+      const q = document.createElement("input");
+      q.type = "number";
+      q.min = "1";
+      q.max = "6";
+      q.value = String(clampInt(it.Quality, 1, 6));
+      q.style.width = "100px";
+      q.addEventListener("input", () => {
+        it.Quality = clampInt(q.value, 1, 6);
+      });
+      tdQ.appendChild(q);
+
+      // Remove
+      const tdRemove = document.createElement("td");
+      tdRemove.className = "right";
+      const rm = document.createElement("button");
+      rm.className = "btnSmall danger";
+      rm.type = "button";
+      rm.textContent = "Remove";
+      rm.addEventListener("click", () => {
+        kit.Items.splice(rowIdx, 1);
+        renderKitList();
+        renderItemsTable();
+        validateCurrentKit();
+      });
+      tdRemove.appendChild(rm);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdCount);
+      tr.appendChild(tdQ);
+      tr.appendChild(tdRemove);
+
+      els.itemsTable.appendChild(tr);
+    });
+
+    renderKitList();
+  }
+
+  // ---------------------------
+  // Events
+  // ---------------------------
+  els.copyKitPathBtn.addEventListener("click", () => {
+    copyToClipboard(els.kitPathText.textContent, els.copyKitMsg);
+  });
+
+  els.fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const obj = JSON.parse(text);
+      dataObj = normalizeStarterKitData(obj);
+
+      fileLoaded = true;
+      selectedIndex = dataObj.StarterKits.length > 0 ? 0 : -1;
+
+      setStatus(els.loadStatus, `Loaded: ${file.name}`, true);
+      setStatus(els.saveStatus, "", true);
+
+      updateKitCount();
+      renderKitList();
+      showEditorForSelected();
+    } catch (err) {
+      setStatus(els.loadStatus, "Failed to load/parse JSON.", false);
+    }
+  });
+
+  els.itemIndexInput.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const obj = JSON.parse(text);
+
+      if (!Array.isArray(obj)) {
+        setStatus(els.indexStatus, "ItemIndex.json must be a JSON array of strings.", false);
+        return;
+      }
+
+      // keep only strings, trim
+      itemIndex = obj.filter(x => typeof x === "string").map(x => x.trim()).filter(Boolean);
+      setStatus(els.indexStatus, `Loaded ItemIndex: ${itemIndex.length} ids`, true);
+
+      // refresh editor so placeholders update
+      showEditorForSelected();
+      renderItemsTable();
+    } catch {
+      setStatus(els.indexStatus, "Failed to load/parse ItemIndex.json.", false);
+    }
+  });
+
+  els.addKitBtn.addEventListener("click", () => {
+    if (!fileLoaded) {
+      setStatus(els.loadStatus, "Load StarterKitConfig.json first.", false);
+      return;
+    }
+
+    const newKit = {
+      Name: "NewKit",
+      Description: "",
+      Items: [
+        { ItemName: "", Count: 1, Quality: 1 }
+      ]
+    };
+
+    dataObj.StarterKits.push(newKit);
+    selectedIndex = dataObj.StarterKits.length - 1;
+
+    updateKitCount();
+    renderKitList();
+    showEditorForSelected();
+  });
+
+  els.deleteKitBtn.addEventListener("click", () => {
+    if (selectedIndex < 0) return;
+    const kit = dataObj.StarterKits[selectedIndex];
+    const name = kit?.Name || "(Unnamed Kit)";
+
+    if (!confirm(`Delete kit "${name}"?`)) return;
+
+    dataObj.StarterKits.splice(selectedIndex, 1);
+    if (dataObj.StarterKits.length === 0) selectedIndex = -1;
+    else selectedIndex = Math.min(selectedIndex, dataObj.StarterKits.length - 1);
+
+    updateKitCount();
+    renderKitList();
+    showEditorForSelected();
+  });
+
+  els.kitName.addEventListener("input", () => {
+    const kit = dataObj.StarterKits[selectedIndex];
+    if (!kit) return;
+    kit.Name = els.kitName.value;
+    renderKitList();
+    validateCurrentKit();
+  });
+
+  els.kitDesc.addEventListener("input", () => {
+    const kit = dataObj.StarterKits[selectedIndex];
+    if (!kit) return;
+    kit.Description = els.kitDesc.value;
+  });
+
+  els.addItemBtn.addEventListener("click", () => {
+    const kit = dataObj.StarterKits[selectedIndex];
+    if (!kit) return;
+    kit.Items.push({ ItemName: "", Count: 1, Quality: 1 });
+    renderKitList();
+    renderItemsTable();
+    validateCurrentKit();
+  });
+
+  els.saveBtn.addEventListener("click", () => {
+    if (!fileLoaded) {
+      setStatus(els.saveStatus, "Please load StarterKitConfig.json first.", false);
+      return;
+    }
+    if (selectedIndex < 0) {
+      setStatus(els.saveStatus, "No kit selected.", false);
+      return;
+    }
+
+    // Normalize values and validate ALL kits before saving
+    for (let i = 0; i < dataObj.StarterKits.length; i++) {
+      const k = dataObj.StarterKits[i];
+
+      k.Name = String(k.Name ?? "").trim();
+      k.Description = String(k.Description ?? "");
+
+      if (!validKitName(k.Name)) {
+        setStatus(els.saveStatus, `Invalid kit name: "${k.Name}". Use only letters/numbers/_ and no spaces.`, false);
+        return;
+      }
+
+      if (!Array.isArray(k.Items) || k.Items.length < 1) {
+        setStatus(els.saveStatus, `Kit "${k.Name}" must have at least 1 item.`, false);
+        return;
+      }
+
+      for (let j = 0; j < k.Items.length; j++) {
+        const it = k.Items[j];
+        it.ItemName = String(it.ItemName ?? "").trim();
+        it.Count = clampInt(it.Count, 1, 999999);
+        it.Quality = clampInt(it.Quality, 1, 6);
+
+        if (!it.ItemName) {
+          setStatus(els.saveStatus, `Kit "${k.Name}" has an item with empty ItemName.`, false);
+          return;
+        }
+      }
+    }
+
+    // Create clean output (no extra fields)
+    const out = {
+      StarterKits: dataObj.StarterKits.map(k => ({
+        Name: k.Name.trim(),
+        Description: k.Description || "",
+        Items: k.Items.map(it => ({
+          ItemName: it.ItemName.trim(),
+          Count: clampInt(it.Count, 1, 999999),
+          Quality: clampInt(it.Quality, 1, 6)
+        }))
+      }))
+    };
+
+    const json = JSON.stringify(out, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "StarterKitConfig.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+    setStatus(els.saveStatus, "Saved. Replace the existing StarterKitConfig.json with the downloaded file.", true);
+  });
+
+  // Init
+  updateKitCount();
+  renderKitList();
+  showEditorForSelected();
+  setStatus(els.loadStatus, "No file loaded.", false);
+  setStatus(els.indexStatus, "No ItemIndex loaded (suggestions disabled).", false);
+</script>
+
+</body>
+</html>
