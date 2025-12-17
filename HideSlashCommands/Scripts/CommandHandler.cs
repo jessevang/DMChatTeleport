@@ -1,12 +1,16 @@
 ﻿using DMChatTeleport;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using DataPlayer = DMChatTeleport.DataModel.PlayerData;
 using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
 
 public static class CommandHandler
 {
+    // Small delay between item grants (prevents client getting hammered)
+    private const int StarterKitGiveDelayMs = 50; // tweak: 50–250ms
+
     public static void ProcessCommand(string steamId, int entityId, string cmd)
     {
         PlayerStorage.Load();
@@ -14,11 +18,11 @@ public static class CommandHandler
         DataPlayer player = PlayerStorage.Get(steamId);
         player.entityId = entityId;
 
-        // Ensure player record exists and is persisted even if this is the first command they ever use used to prevent players from getting infinite starterkits
+        // Ensure player record exists and is persisted even if this is the first command they ever use
+        // used to prevent players from getting infinite starterkits
         PlayerStorage.Save();
 
         World world = GameManager.Instance.World;
-
 
         // --------------------------------------------------------------------
         // Reloads Config Options
@@ -80,8 +84,6 @@ public static class CommandHandler
             }
 
             EntityPlayer ep = world.GetEntity(entityId) as EntityPlayer;
-
-
             if (ep != null)
             {
                 player.returnX = ep.position.x;
@@ -94,7 +96,6 @@ public static class CommandHandler
                     return;
 
                 Teleport(entityId, new Vector3(player.baseX, player.baseY, player.baseZ));
-
 
                 SendServerMessage(entityId, "Teleported to base.");
                 PlayerStorage.Save();
@@ -123,7 +124,6 @@ public static class CommandHandler
                 return;
 
             Teleport(entityId, new Vector3(player.returnX, player.returnY, player.returnZ));
-
 
             SendServerMessage(entityId, "Returned.");
             player.hasReturn = false;
@@ -156,7 +156,7 @@ public static class CommandHandler
         }
 
         // ====================================================================
-        // STARTER KITS DISABLED?
+        // STARTER KITS DISABLED
         // ====================================================================
         if (!kitsEnabled && (cmd.StartsWith("/pick") || cmd.StartsWith("/choose") || cmd == "/liststarterkits"))
         {
@@ -222,8 +222,9 @@ public static class CommandHandler
 
                 SendServerMessage(entityId, $"Random starter kit selected: {kit.Name}");
 
-                // Bonus item for RANDOM pick
+                // Bonus item for RANDOM pick (skip if invalid)
                 GiveItemToPlayer(entityId, "adminT1QuestTicket", 2, 1);
+                Thread.Sleep(StarterKitGiveDelayMs);
             }
             else
             {
@@ -245,9 +246,24 @@ public static class CommandHandler
             foreach (var item in kit.Items)
             {
                 i++;
+
+                if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
+                {
+                    SendServerMessage(entityId, $"{i}. (skipped invalid item entry)");
+                    Thread.Sleep(StarterKitGiveDelayMs);
+                    continue;
+                }
+
                 int q = item.Quality <= 0 ? 1 : item.Quality;
-                GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
-                SendServerMessage(entityId, $"{i}. {item.ItemName}, Qty:{item.Count}, Q:{q}");
+
+                bool given = GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
+
+                if (given)
+                    SendServerMessage(entityId, $"{i}. {item.ItemName}, Qty:{item.Count}, Q:{q}");
+                else
+                    SendServerMessage(entityId, $"{i}. (skipped) {item.ItemName} - item not found / invalid");
+
+                Thread.Sleep(StarterKitGiveDelayMs);
             }
 
             player.HasPickedStarterKit = true;
@@ -256,6 +272,112 @@ public static class CommandHandler
 
             return;
         }
+
+        /*
+        // ====================================================================
+        // Usage: /testkit <name>
+        // COMMENT OUT AFTER TESTING
+        // ====================================================================
+        if (cmd.StartsWith("/testkit ", StringComparison.OrdinalIgnoreCase))
+        {
+            StarterKitManager.Load();
+
+            string[] split = cmd.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
+            {
+                SendServerMessage(entityId, "Usage: /testkit <name>");
+                return;
+            }
+
+            string kitName = split[1].Trim();
+
+            if (!StarterKitManager.TryGetKit(kitName, out var kit) || kit == null)
+            {
+                SendServerMessage(entityId, $"Kit not found: {kitName}");
+                return;
+            }
+
+            if (kit.Items == null || kit.Items.Count == 0)
+            {
+                SendServerMessage(entityId, $"Kit '{kit.Name}' has no items.");
+                return;
+            }
+
+            SendServerMessage(entityId, $"[TEST] Giving kit: {kit.Name}");
+
+            int i = 0;
+            foreach (var item in kit.Items)
+            {
+                i++;
+
+                if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
+                {
+                    SendServerMessage(entityId, $"{i}. (skipped invalid item entry)");
+                    Thread.Sleep(StarterKitGiveDelayMs);
+                    continue;
+                }
+
+                int q = item.Quality <= 0 ? 1 : item.Quality;
+                bool given = GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
+
+                if (given)
+                    SendServerMessage(entityId, $"{i}. {item.ItemName} x{item.Count} (Q{q})");
+                else
+                    SendServerMessage(entityId, $"{i}. (skipped) {item.ItemName} - item not found / invalid");
+
+                Thread.Sleep(StarterKitGiveDelayMs);
+            }
+
+            SendServerMessage(entityId, $"[TEST] Done: {kit.Name}");
+            return;
+        }
+        
+
+        
+        // ====================================================================
+        // TEMP TEST: GIVE ALL KITS (NO ADMIN CHECK)
+        // Usage: /testkits
+        // COMMENT OUT AFTER TESTING
+        // ====================================================================
+        if (cmd.Equals("/testkits", StringComparison.OrdinalIgnoreCase))
+        {
+            StarterKitManager.Load();
+
+            if (StarterKitManager.Kits.Count == 0)
+            {
+                SendServerMessage(entityId, "[TEST] No starter kits available.");
+                return;
+            }
+
+            SendServerMessage(entityId, $"[TEST] Giving ALL kits: {StarterKitManager.Kits.Count}");
+
+            foreach (var kv in StarterKitManager.Kits)
+            {
+                var kit = kv.Value;
+                if (kit?.Items == null || kit.Items.Count == 0)
+                    continue;
+
+                SendServerMessage(entityId, $"[TEST] Kit: {kit.Name}");
+
+                foreach (var item in kit.Items)
+                {
+                    if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
+                        continue;
+
+                    int q = item.Quality <= 0 ? 1 : item.Quality;
+
+                    GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
+
+                    Thread.Sleep(StarterKitGiveDelayMs);
+                }
+            }
+
+            SendServerMessage(entityId, "[TEST] Done giving all kits.");
+            return;
+        }
+
+        */
+        
     }
 
     private static void Teleport(int entityId, Vector3 pos)
@@ -274,62 +396,110 @@ public static class CommandHandler
         );
     }
 
-    public static void GiveItemToPlayer(int entityId, string itemName, int count, int quality = 1)
+
+    public static bool GiveItemToPlayer(int entityId, string itemName, int count, int quality = 1)
     {
+        if (string.IsNullOrWhiteSpace(itemName) || count <= 0)
+            return false;
+
         if (quality < 1) quality = 1;
         if (quality > 6) quality = 6;
 
-        bool ok = GiveItemViaForcedPickup(entityId, itemName, count, quality);
-
-        if (!ok)
+        if (!TryResolveItem(itemName, out ItemValue resolved, out string failReason))
         {
-            SdtdConsole.Instance.ExecuteSync(
-                $"give {entityId} {itemName} {count} {quality}",
-                null
-            );
+            Debug.LogWarning($"[StarterKit] Skipping '{itemName}' for player {entityId}: {failReason}");
+            return false;
+        }
 
-            Debug.Log($"[StarterKit] Fallback give: {itemName} x{count} (Q{quality}) to player {entityId}");
+        int maxStack = 5000; 
+        try
+        {
+            if (resolved?.ItemClass != null)
+                maxStack = Math.Max(1, resolved.ItemClass.Stacknumber.Value);
+        }
+        catch
+        {
+
+        }
+
+        int remaining = count;
+        while (remaining > 0)
+        {
+            int giveNow = Math.Min(remaining, maxStack);
+
+            bool ok = GiveItemViaForcedPickup(entityId, itemName, resolved, giveNow, quality);
+
+
+            if (!ok)
+            {
+                SdtdConsole.Instance.ExecuteSync($"give {entityId} {itemName} {giveNow} {quality}", null);
+                Debug.Log($"[StarterKit] Fallback give: {itemName} x{giveNow} (Q{quality}) to player {entityId}");
+            }
+
+            remaining -= giveNow;
+
+            if (remaining > 0)
+                Thread.Sleep(Math.Min(StarterKitGiveDelayMs, 75));
+        }
+
+        return true;
+    }
+
+    private static bool TryResolveItem(string itemName, out ItemValue itemValue, out string reason)
+    {
+        itemValue = null;
+        reason = null;
+
+        try
+        {
+            // resolve without changing the original string, but lookup case-insensitive
+            ItemClass itemClass = ItemClass.GetItemClass(itemName, true) ?? ItemClass.GetItemClass(itemName, false); // fallback
+
+            if (itemClass == null)
+            {
+                reason = "ItemClass not found (name mismatch, missing mod, or item not registered yet)";
+                return false;
+            }
+
+            itemValue = new ItemValue(itemClass.Id, true);
+
+            if (itemValue == null || itemValue.ItemClass == null || itemValue.type <= 0)
+            {
+                reason = "ItemValue could not be created (invalid type or ItemClass)";
+                itemValue = null;
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            reason = $"Exception resolving item: {ex.GetType().Name}: {ex.Message}";
+            itemValue = null;
+            return false;
         }
     }
 
-    private static bool GiveItemViaForcedPickup(int entityId, string itemName, int count, int quality = 1)
+
+    private static bool GiveItemViaForcedPickup(int entityId, string itemName, ItemValue resolved, int count, int quality = 1)
     {
-        if (count <= 0)
+        if (count <= 0 || resolved == null || resolved.ItemClass == null)
             return false;
 
         World world = GameManager.Instance.World;
-        if (world == null)
-        {
-            Debug.Log("[StarterKit] World is null; cannot give items.");
-            return false;
-        }
+        if (world == null) return false;
 
         ClientInfo cInfo = ConnectionManager.Instance.Clients.ForEntityId(entityId);
-        if (cInfo == null)
-        {
-            Debug.Log($"[StarterKit] No ClientInfo for entity {entityId}; cannot give items.");
-            return false;
-        }
+        if (cInfo == null) return false;
 
         EntityPlayer player = world.GetEntity(entityId) as EntityPlayer;
-        if (player == null || !player.IsSpawned() || player.IsDead())
-        {
-            Debug.Log($"[StarterKit] Player {entityId} not spawned or dead; cannot give items.");
-            return false;
-        }
-
-        ItemValue itemValue = ItemClass.GetItem(itemName);
-        if (itemValue == null)
-        {
-            Debug.Log($"[StarterKit] Invalid item name '{itemName}'.");
-            return false;
-        }
+        if (player == null || !player.IsSpawned() || player.IsDead()) return false;
 
         if (quality < 1) quality = 1;
         if (quality > 6) quality = 6;
 
         ItemStack stack = new ItemStack(
-            new ItemValue(itemValue.type, quality, quality, false, null, 1f),
+            new ItemValue(resolved.type, quality, quality, false, null, 1f),
             count
         );
 
@@ -348,15 +518,15 @@ public static class CommandHandler
 
         cInfo.SendPackage(
             NetPackageManager.GetPackage<NetPackageEntityCollect>()
-                             .Setup(entityItem.entityId, entityId)
+                .Setup(entityItem.entityId, entityId)
         );
-
 
         world.RemoveEntity(entityItem.entityId, EnumRemoveEntityReason.Despawned);
 
         Debug.Log($"[StarterKit] Forced pickup of {itemName} x{count} (Q{quality}) for player {entityId}.");
         return true;
     }
+
 
     private static bool TryConsumeTeleportCooldown(int entityId, DataPlayer player)
     {
@@ -378,13 +548,9 @@ public static class CommandHandler
             }
         }
 
-        // consume
+
         player.LastTeleportUtcTicks = nowTicks;
         PlayerStorage.Save();
         return true;
     }
-
 }
-
-
-

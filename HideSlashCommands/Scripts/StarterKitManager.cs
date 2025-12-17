@@ -6,56 +6,95 @@ using UnityEngine;
 
 namespace DMChatTeleport
 {
-    public static class StarterKitManager
+    internal static class StarterKitManager
     {
-        private static readonly string PathConfig = "Mods/DMChatTeleport/Data/StarterKitConfig.json";
+        private static readonly object _lock = new object();
 
-        public static readonly Dictionary<string, StarterKit> Kits =
-            new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, StarterKit> Kits { get; private set; }
+            = new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+
+        // Absolute, Linux-safe path (case-sensitive on Linux!)
+        private static string SavePath =>
+            GameIO.GetGameDir("Mods/DMChatTeleport/Data/StarterKitConfig.json");
 
         public static void Load()
         {
-            try
+            lock (_lock)
             {
-                if (!File.Exists(PathConfig))
+                try
                 {
-                    Debug.Log($"[StarterKits] Config not found at '{PathConfig}'. No kits loaded.");
-                    return;
-                }
+                    string path = SavePath;
+                    string dir = Path.GetDirectoryName(path);
 
-                string json = File.ReadAllText(PathConfig);
-                var config = JsonConvert.DeserializeObject<StarterKitConfig>(json) ?? new StarterKitConfig();
+                    if (!string.IsNullOrEmpty(dir))
+                        Directory.CreateDirectory(dir);
 
-                Kits.Clear();
+                    // Helpful for Linux path/casing debugging
+                    Debug.Log($"[DMChatTeleport] Starter kits path: '{path}'");
 
-                if (config.StarterKits != null)
-                {
-                    foreach (var kit in config.StarterKits)
+                    if (!File.Exists(path))
                     {
-                        if (kit == null || string.IsNullOrWhiteSpace(kit.Name))
-                            continue;
+                        // Create a default wrapper file in the RIGHT format
+                        var empty = new StarterKitConfig();
+                        File.WriteAllText(path, JsonConvert.SerializeObject(empty, Formatting.Indented));
 
-                        if (Kits.ContainsKey(kit.Name))
-                        {
-                            Debug.Log($"[StarterKits] Duplicate kit '{kit.Name}' found. Using first occurrence.");
-                            continue;
-                        }
-
-                        Kits.Add(kit.Name, kit);
+                        Kits = new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+                        Debug.Log("[DMChatTeleport] StarterKitConfig.json not found; created default (empty).");
+                        return;
                     }
-                }
 
-                Debug.Log($"[StarterKits] Loaded {Kits.Count} starter kits.");
-            }
-            catch (Exception ex)
-            {
-                Debug.Log($"[StarterKits] ERROR loading starter kits: {ex}");
+                    string json = File.ReadAllText(path);
+
+                    if (string.IsNullOrWhiteSpace(json))
+                    {
+                        Kits = new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+                        Debug.Log("[DMChatTeleport] StarterKitConfig.json was empty; 0 kits loaded.");
+                        return;
+                    }
+
+                    // ✅ Correct root type for your JSON: { "StarterKits": [ ... ] }
+                    var config = JsonConvert.DeserializeObject<StarterKitConfig>(json) ?? new StarterKitConfig();
+
+                    var dict = new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+
+                    if (config.StarterKits != null)
+                    {
+                        foreach (var kit in config.StarterKits)
+                        {
+                            if (kit == null || string.IsNullOrWhiteSpace(kit.Name))
+                                continue;
+
+                            if (dict.ContainsKey(kit.Name))
+                            {
+                                Debug.Log($"[DMChatTeleport] Duplicate kit '{kit.Name}' found. Using first occurrence.");
+                                continue;
+                            }
+
+                            // Ensure Items list isn't null
+                            if (kit.Items == null)
+                                kit.Items = new List<StarterKitItem>();
+
+                            dict.Add(kit.Name, kit);
+                        }
+                    }
+
+                    Kits = dict;
+                    Debug.Log($"[DMChatTeleport] Loaded {Kits.Count} starter kits.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[DMChatTeleport] StarterKitManager.Load failed. Path='{SavePath}'. Error: {ex}");
+                    Kits = new Dictionary<string, StarterKit>(StringComparer.OrdinalIgnoreCase);
+                }
             }
         }
 
         public static bool TryGetKit(string name, out StarterKit kit)
         {
-            return Kits.TryGetValue(name, out kit);
+            lock (_lock)
+            {
+                return Kits.TryGetValue(name, out kit);
+            }
         }
     }
 }

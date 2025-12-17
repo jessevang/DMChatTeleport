@@ -93,7 +93,7 @@
     <Compile Include="Scripts\StarterKitManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\ItemIDList.json">
+    <None Include="Data\ItemIndex.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Data\StarterKitConfig.json">

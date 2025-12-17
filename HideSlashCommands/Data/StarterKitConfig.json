@@ -221,7 +221,7 @@
           "Quality": 1
         },
         {
-          "ItemName": "frameShapes",
+          "ItemName": "frameShapes:VariantHelper",
           "Count": 200,
           "Quality": 1
         },
