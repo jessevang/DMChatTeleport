@@ -89,6 +89,7 @@
     <Compile Include="Scripts\Config.cs" />
     <Compile Include="Scripts\DataModel.cs" />
     <Compile Include="Scripts\DMChatTeleport.cs" />
+    <Compile Include="Scripts\PartyUtil.cs" />
     <Compile Include="Scripts\Patch_GameManager_Update_BloodMoonWatcher.cs" />
     <Compile Include="Scripts\Patch_ChatMessageServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

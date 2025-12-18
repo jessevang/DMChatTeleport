@@ -28,7 +28,11 @@ namespace DMChatTeleports
             string playerId = cInfo.InternalId.ToString();   // Steam_... or EOS_...
             string playerName = cInfo.playerName;
 
-            BloodMoonKillTracker.AddKill(playerId, playerName);
+
+            int partyId = PartyUtil.TryGetPartyIdForEntity(killer); // 0 = Solo
+            BloodMoonKillTracker.AddKill(playerId, playerName, partyId);
+
+
         }
     }
 }
