@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using DMChatTeleport;
 using System.Collections.Generic;
+using DMChatTeleports;
 
 [HarmonyPatch(typeof(GameManager))]
 [HarmonyPatch("ChatMessageServer")]
