@@ -11,8 +11,8 @@ namespace DMChatTeleports
 
         static void Postfix()
         {
-            if (SingletonMonoBehaviour<ConnectionManager>.Instance == null ||
-                !SingletonMonoBehaviour<ConnectionManager>.Instance.IsServer)
+            var cm = SingletonMonoBehaviour<ConnectionManager>.Instance;
+            if (cm == null || !cm.IsServer)
                 return;
 
             var gm = GameManager.Instance;
@@ -23,7 +23,15 @@ namespace DMChatTeleports
             if (gm.gameStateManager == null || !gm.gameStateManager.IsGameStarted())
                 return;
 
-            var info = BloodMoonUtil.GetDebugInfo();
+            // RP tick system
+            DMChatTeleport.RewardPointsManager.Update();
+
+            bool isBloodMoon = DMChatTeleport.BloodMoonUtil.IsActiveNow();
+
+            if (isBloodMoon && DMChatTeleport.BloodMoonKillTracker.IsCounting)
+                DMChatTeleport.BloodMoonKillTracker.MarkOnlinePresenceFromRewardSystem();
+
+            var info = DMChatTeleport.BloodMoonUtil.GetDebugInfo();
             int day = info.day;
             int hour = info.hour;
 
@@ -33,20 +41,19 @@ namespace DMChatTeleports
             _lastDay = day;
             _lastHour = hour;
 
-            bool isBloodMoon = BloodMoonUtil.IsActiveNow();
-
             if (!_wasBloodMoon && isBloodMoon)
             {
                 _wasBloodMoon = true;
-                BloodMoonKillTracker.StartTracking();
-                BloodMoonKillTracker.Broadcast("Blood Moon started! Kill tracking is ON.");
+                DMChatTeleport.BloodMoonKillTracker.StartTracking();
+                DMChatTeleport.BloodMoonKillTracker.Broadcast("Blood Moon started! Kill tracking is ON.");
+                DMChatTeleport.BloodMoonKillTracker.MarkOnlinePresenceFromRewardSystem();
                 return;
             }
 
             if (_wasBloodMoon && !isBloodMoon)
             {
                 _wasBloodMoon = false;
-                BloodMoonKillTracker.BroadcastResultsAndReset();
+                DMChatTeleport.BloodMoonKillTracker.BroadcastResultsAndReset();
                 return;
             }
         }

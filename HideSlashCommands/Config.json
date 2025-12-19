@@ -2,5 +2,62 @@
   "TurnOnTeleportCommands": true,
   "TurnOnStarterKits": true,
   "TurnOnHideCommandsWithSlashes": true,
-  "TeleportCooldownSeconds": 0
+  "TeleportCooldownSeconds": 0,
+
+  "RewardPoints": {
+    "Enabled": true,
+    "MinutesPerPoint": 30,
+    "TickSeconds": 10,
+    "SaveIntervalSeconds": 60
+  },
+
+  "BloodMoonRewards": {
+    "Enabled": true,
+    "PresenceRewardRP": 1,
+
+    "PartyRankRewards": {
+      "FirstPlaceRP": 5,
+      "SecondPlaceRP": 3
+    },
+
+    "SoloRankRewards": {
+      "FirstPlaceRP": 5,
+      "SecondPlaceRP": 3
+    },
+
+    "RequirePresenceForRankRewards": true,
+    "AnnounceRewardMessages": true
+  },
+
+  "Shop": {
+    "Enabled": true,
+    "LogPurchases": true,
+    "Items": {
+      "consumable_x5": {
+        "Enabled": true,
+        "CostRP": 3
+      },
+      "pocket_3": {
+        "Enabled": true,
+        "CostRP": 3
+      },
+      "armor_q3_random": {
+        "Enabled": true,
+        "CostRP": 3
+      },
+      "reroll_item": {
+        "Enabled": true,
+        "CostRP": 15
+      },
+      "clone_item": {
+        "Enabled": true,
+        "CostRP": 40
+      },
+      "skill_token": {
+        "Enabled": true,
+        "CostRP": 10,
+        "LimitPer10Levels": true
+      }
+    }
+  }
 }

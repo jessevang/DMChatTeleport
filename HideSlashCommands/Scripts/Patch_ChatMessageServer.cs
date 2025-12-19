@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using DMChatTeleport;
 using System.Collections.Generic;
-using DMChatTeleports;
 
 [HarmonyPatch(typeof(GameManager))]
 [HarmonyPatch("ChatMessageServer")]
@@ -29,70 +28,51 @@ public class Patch_ChatMessageServer
         if (string.IsNullOrEmpty(_msg))
             return true;
 
-        bool hideSlash = ConfigManager.Config.TurnOnHideCommandsWithSlashes;
+        bool hideSlash = ConfigManager.Config != null && ConfigManager.Config.TurnOnHideCommandsWithSlashes;
 
         // Only parse slash commands if they START with '/'
-        if (_msg.StartsWith("/"))
+        if (!_msg.StartsWith("/"))
+            return true;
+
+        // If hiding is OFF, let vanilla + other mods handle it normally
+        if (!hideSlash)
+            return true;
+
+        // Build persistent id (EOS_... preferred, else Steam_..., etc)
+        string playerId = PlayerIdUtil.GetPersistentIdOrNull(_cInfo);
+        if (string.IsNullOrWhiteSpace(playerId))
         {
-            // ---------------------------------------------------------
-            // 1) If command hiding is OFF, allow other Harmony patches
-            //    AND the original game code to run normally
-            // ---------------------------------------------------------
-            if (!hideSlash)
-            {
-                return true; // DO NOT BLOCK anything
-            }
-
-            // ---------------------------------------------------------
-            // 2) Extract steamId from ClientInfo.InternalId
-            // ---------------------------------------------------------
-            string id = _cInfo.InternalId.ToString();  // Example: "Steam_76561198350062436"
-            string steamId = id.Replace("Steam_", "").Trim();
-
-            string command = _msg.Trim().ToLower();
-
-            // ---------------------------------------------------------
-            // 3) Check teleport commands toggle
-            // ---------------------------------------------------------
-            if (command.StartsWith("/setbase") ||
-                command.StartsWith("/base") ||
-                command.StartsWith("/return"))
-            {
-                if (!ConfigManager.Config.TurnOnTeleportCommands)
-                {
-                    // Teleport commands disabled – DO NOT EXECUTE our code
-                    // DO NOT block the message, because user may need feedback
-                    return true;
-                }
-            }
-
-            // ---------------------------------------------------------
-            // 4) Starter kits toggle
-            // ---------------------------------------------------------
-            if (command.StartsWith("/starter") ||
-                command.StartsWith("/kit") ||
-                command.StartsWith("/pick"))
-            {
-                if (!ConfigManager.Config.TurnOnStarterKits)
-                {
-                    // Starter kits disabled — let original run
-                    return true;
-                }
-            }
-
-            // ---------------------------------------------------------
-            // 5) Execute our commands (command logic already checks validity)
-            // ---------------------------------------------------------
-            CommandHandler.ProcessCommand(steamId, _senderEntityId, command);
-
-            // ---------------------------------------------------------
-            // 6) IMPORTANT:
-            //    Return FALSE because hiding is ON, so we block message
-            // ---------------------------------------------------------
-            return false;
+            // Can't identify player -> let original run so at least they see something
+            return true;
         }
 
-        // Not a slash command → process normally
-        return true;
+        string command = _msg.Trim();
+
+        // Feature toggles
+        if (command.StartsWith("/setbase") || command.StartsWith("/base") || command.StartsWith("/return"))
+        {
+            if (ConfigManager.Config == null || !ConfigManager.Config.TurnOnTeleportCommands)
+                return true; // allow original
+        }
+
+        if (command.StartsWith("/starter") || command.StartsWith("/kit") || command.StartsWith("/pick") || command.StartsWith("/liststarterkits"))
+        {
+            if (ConfigManager.Config == null || !ConfigManager.Config.TurnOnStarterKits)
+                return true; // allow original
+        }
+
+        // Execute our commands
+        // IMPORTANT: playerId is now "EOS_..." or "Steam_..." (full string, no stripping)
+        try
+        {
+            CommandHandler.ProcessCommand(playerId, _senderEntityId, command);
+        }
+        catch (System.Exception ex)
+        {
+            SdtdConsole.Instance.ExecuteSync($"sayplayer {_senderEntityId} \"Command error: {ex.Message}\"", null);
+        }
+
+        // Hiding is ON so block the chat message from showing globally
+        return false;
     }
 }

@@ -85,17 +85,21 @@
   <ItemGroup>
     <Compile Include="Scripts\BloodMoonKillTracker.cs" />
     <Compile Include="Scripts\BloodmoonUtil.cs" />
+    <Compile Include="Scripts\PlayerIdUtil.cs" />
     <Compile Include="Scripts\CommandHandler.cs" />
     <Compile Include="Scripts\Config.cs" />
-    <Compile Include="Scripts\DataModel.cs" />
+    <Compile Include="Scripts\PlayerDataStore.cs" />
     <Compile Include="Scripts\DMChatTeleport.cs" />
     <Compile Include="Scripts\PartyUtil.cs" />
     <Compile Include="Scripts\Patch_GameManager_Update_BloodMoonWatcher.cs" />
     <Compile Include="Scripts\Patch_ChatMessageServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\Patch_EntityAlive_AwardKill.cs" />
+    <Compile Include="Scripts\PurchaseRecord.cs" />
+    <Compile Include="Scripts\RewardPointsManager.cs" />
     <Compile Include="Scripts\StarterKit.cs" />
     <Compile Include="Scripts\StarterKitManager.cs" />
+    <Compile Include="Scripts\WelcomeManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\ItemIndex.json">

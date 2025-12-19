@@ -7,7 +7,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 16px;
-            max-width: 820px;
+            max-width: 1100px;
         }
 
         .box {
@@ -39,7 +39,7 @@
 
         label {
             display: inline-block;
-            min-width: 260px;
+            min-width: 280px;
             margin: 6px 0;
         }
 
@@ -48,6 +48,14 @@
         }
 
         input[type="file"] {
+            width: 520px;
+        }
+
+        input[type="number"] {
+            width: 120px;
+        }
+
+        input[type="text"] {
             width: 420px;
         }
 
@@ -68,13 +76,62 @@
             align-items: center;
             flex-wrap: wrap;
         }
+
+        .shop-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+            .shop-table th, .shop-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top;
+            }
+
+            .shop-table th {
+                background: #f7f7f7;
+            }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #f1f1f1;
+            font-size: 12px;
+        }
+
+        .disabled-row {
+            opacity: 0.6;
+        }
+
+        .locked {
+            color: #555;
+            font-size: 12px;
+        }
+
+        .danger {
+            background: #fff1f1;
+            border: 1px solid #f0c7c7;
+        }
+
+        .subgrid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
 
     <div class="box">
         <div class="title">DMChatTeleport ConfigUI</div>
-        <div>Instructions: Choose a file to load, update the settings, then click the save button.</div>
+        <div>
+            Load <code>config.json</code>, optionally load <code>ItemIndex.json</code> for item search,
+            edit settings, then <b>Save</b> to download a new <code>config.json</code>.
+        </div>
     </div>
 
     <div class="box">
@@ -84,9 +141,15 @@
             <button id="copyPathBtn" type="button">Copy</button>
             <span id="copyMsg" class="small"></span>
         </div>
-        <div class="small">
-            Tip: Paste this path into the file picker address bar to jump directly to the folder.
+
+        <div class="row" style="margin-top:10px;">
+            <div><b>ItemIndex.json:</b></div>
+            <code id="itemIndexPathText">C:\Program Files (x86)\Steam\steamapps\common\7 Days to Die Dedicated Server\Mods\DMChatTeleport\Data\</code>
+            <button id="copyItemIndexPathBtn" type="button">Copy</button>
+            <span class="pill">Load this file below to enable autocomplete</span>
         </div>
+
+        <div class="small">Tip: Paste these paths into File Explorer or the file picker address bar.</div>
     </div>
 
     <div class="box">
@@ -95,33 +158,34 @@
             <input id="fileInput" type="file" accept=".json,application/json" />
             <span id="loadStatus" class="small"></span>
         </div>
+
+        <div class="row" style="margin-top:8px;">
+            <label><b>Choose ItemIndex.json (optional):</b></label>
+            <input id="itemIndexInput" type="file" accept=".json,application/json" />
+            <span id="itemIndexStatus" class="small"></span>
+        </div>
+
+        <div class="small">
+            ItemIndex is used only to help you search and pick item keys for shop entries. It is not saved into config.json.
+        </div>
     </div>
 
     <div class="box">
-        <div class="title" style="font-size:16px;">Settings</div>
+        <div class="title" style="font-size:16px;">Core Settings</div>
 
         <div>
             <label>TurnOnTeleportCommands</label>
-            <select id="TurnOnTeleportCommands">
-                <option value="true">true</option>
-                <option value="false">false</option>
-            </select>
+            <select id="TurnOnTeleportCommands"><option value="true">true</option><option value="false">false</option></select>
         </div>
 
         <div>
             <label>TurnOnStarterKits</label>
-            <select id="TurnOnStarterKits">
-                <option value="true">true</option>
-                <option value="false">false</option>
-            </select>
+            <select id="TurnOnStarterKits"><option value="true">true</option><option value="false">false</option></select>
         </div>
 
         <div>
             <label>TurnOnHideCommandsWithSlashes</label>
-            <select id="TurnOnHideCommandsWithSlashes">
-                <option value="true">true</option>
-                <option value="false">false</option>
-            </select>
+            <select id="TurnOnHideCommandsWithSlashes"><option value="true">true</option><option value="false">false</option></select>
         </div>
 
         <div>
@@ -137,8 +201,145 @@
                 <option value="300">300</option>
             </select>
         </div>
+    </div>
 
-        <div class="row" style="margin-top:12px;">
+    <div class="box">
+        <div class="title" style="font-size:16px;">Reward Points</div>
+
+        <div>
+            <label>RewardPoints.Enabled</label>
+            <select id="RP_Enabled"><option value="true">true</option><option value="false">false</option></select>
+        </div>
+
+        <div class="row">
+            <label>RewardPoints.MinutesPerPoint</label>
+            <input id="RP_MinutesPerPoint" type="number" min="1" step="1" />
+            <span class="small">Example: 30 = 1 RP per 30 minutes</span>
+        </div>
+
+        <div class="row">
+            <label>RewardPoints.TickSeconds</label>
+            <input id="RP_TickSeconds" type="number" min="1" step="1" />
+            <span class="small">How often to check online players</span>
+        </div>
+
+        <div class="row">
+            <label>RewardPoints.SaveIntervalSeconds</label>
+            <input id="RP_SaveIntervalSeconds" type="number" min="5" step="1" />
+            <span class="small">How often to save player_data.json</span>
+        </div>
+    </div>
+
+    <!-- NEW: BloodMoonRewards -->
+    <div class="box">
+        <div class="title" style="font-size:16px;">Blood Moon Rewards</div>
+
+        <div>
+            <label>BloodMoonRewards.Enabled</label>
+            <select id="BM_Enabled"><option value="true">true</option><option value="false">false</option></select>
+        </div>
+
+        <div class="row">
+            <label>BloodMoonRewards.PresenceRewardRP</label>
+            <input id="BM_PresenceRewardRP" type="number" min="0" step="1" />
+            <span class="small">RP for any player present at least once during blood moon</span>
+        </div>
+
+        <div class="row">
+            <label>BloodMoonRewards.RequirePresenceForRankRewards</label>
+            <select id="BM_RequirePresenceForRankRewards"><option value="true">true</option><option value="false">false</option></select>
+            <span class="small">If true, only “present” players can receive rank rewards</span>
+        </div>
+
+        <div class="row">
+            <label>BloodMoonRewards.AnnounceRewardMessages</label>
+            <select id="BM_AnnounceRewardMessages"><option value="true">true</option><option value="false">false</option></select>
+            <span class="small">If true, sends per-player RP award messages</span>
+        </div>
+
+        <div class="subgrid">
+            <div class="pill">Party Rank Rewards</div>
+
+            <div class="row">
+                <label>BloodMoonRewards.PartyRankRewards.FirstPlaceRP</label>
+                <input id="BM_PartyFirst" type="number" min="0" step="1" />
+            </div>
+
+            <div class="row">
+                <label>BloodMoonRewards.PartyRankRewards.SecondPlaceRP</label>
+                <input id="BM_PartySecond" type="number" min="0" step="1" />
+            </div>
+        </div>
+
+        <div class="subgrid">
+            <div class="pill">Solo Rank Rewards</div>
+
+            <div class="row">
+                <label>BloodMoonRewards.SoloRankRewards.FirstPlaceRP</label>
+                <input id="BM_SoloFirst" type="number" min="0" step="1" />
+            </div>
+
+            <div class="row">
+                <label>BloodMoonRewards.SoloRankRewards.SecondPlaceRP</label>
+                <input id="BM_SoloSecond" type="number" min="0" step="1" />
+            </div>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="title" style="font-size:16px;">Shop</div>
+
+        <div>
+            <label>Shop.Enabled</label>
+            <select id="Shop_Enabled"><option value="true">true</option><option value="false">false</option></select>
+        </div>
+
+        <div>
+            <label>Shop.LogPurchases</label>
+            <select id="Shop_LogPurchases"><option value="true">true</option><option value="false">false</option></select>
+        </div>
+
+        <hr />
+
+        <div class="row">
+            <b>Add shop item:</b>
+            <input id="addItemKey" type="text" placeholder="Start typing item key (requires ItemIndex loaded)" list="itemKeysDatalist" />
+            <datalist id="itemKeysDatalist"></datalist>
+
+            <label style="min-width:120px;">Enabled</label>
+            <select id="addItemEnabled" style="width:120px;">
+                <option value="true">true</option>
+                <option value="false">false</option>
+            </select>
+
+            <label style="min-width:70px;">CostRP</label>
+            <input id="addItemCost" type="number" min="0" step="1" value="3" />
+
+            <button id="addShopItemBtn" type="button">Add</button>
+            <span id="addShopItemStatus" class="small"></span>
+        </div>
+
+        <div class="small">
+            You can add/remove normal items freely. The programmatic items below are <b>locked</b>:
+            <code>reroll_item</code>, <code>clone_item</code>, <code>skill_token</code>.
+        </div>
+
+        <table class="shop-table" id="shopTable">
+            <thead>
+                <tr>
+                    <th style="width:260px;">Item Key</th>
+                    <th style="width:120px;">Enabled</th>
+                    <th style="width:140px;">CostRP</th>
+                    <th>Description</th>
+                    <th style="width:120px;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="shopTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <div class="row" style="margin-top:4px;">
             <button id="saveBtn" type="button">Save</button>
             <span id="saveStatus" class="small"></span>
         </div>
@@ -149,45 +350,240 @@
     </div>
 
     <script>
-        let configObj = {
+        // ---------- Defaults ----------
+        const DEFAULT_CONFIG = {
             TurnOnTeleportCommands: true,
             TurnOnStarterKits: true,
             TurnOnHideCommandsWithSlashes: true,
-            TeleportCooldownSeconds: 0
+            TeleportCooldownSeconds: 0,
+
+            RewardPoints: {
+                Enabled: true,
+                MinutesPerPoint: 1,
+                TickSeconds: 10,
+                SaveIntervalSeconds: 60
+            },
+
+            BloodMoonRewards: {
+                Enabled: true,
+                PresenceRewardRP: 1,
+                PartyRankRewards: { FirstPlaceRP: 5, SecondPlaceRP: 3 },
+                SoloRankRewards: { FirstPlaceRP: 5, SecondPlaceRP: 3 },
+                RequirePresenceForRankRewards: true,
+                AnnounceRewardMessages: true
+            },
+
+            Shop: {
+                Enabled: true,
+                LogPurchases: true,
+                Items: {
+                    "consumable_x5": { Enabled: true, CostRP: 3 },
+                    "pocket_3": { Enabled: true, CostRP: 3 },
+                    "armor_q3_random": { Enabled: true, CostRP: 3 },
+
+                    // locked programmatic
+                    "reroll_item": { Enabled: true, CostRP: 15 },
+                    "clone_item": { Enabled: true, CostRP: 40 },
+                    "skill_token": { Enabled: true, CostRP: 10, LimitPer10Levels: true }
+                }
+            }
         };
 
+        // Locked keys: cannot be removed or renamed
+        const LOCKED_KEYS = new Set(["reroll_item", "clone_item", "skill_token"]);
+
+        // UI-only descriptions
+        const SHOP_DESCRIPTIONS = {
+            "consumable_x5": "Extended vanilla consumable (x5 duration). You’ll map exact spawned item later.",
+            "pocket_3": "3-pocket armor mod (spawn item later).",
+            "armor_q3_random": "Random armor quality 3 (program chooses).",
+            "reroll_item": "Programmatic reroll: only if item has no mods; removes item then spawns re-rolled one.",
+            "clone_item": "Programmatic clone: duplicates held weapon or equipped armor with same stat rolls.",
+            "skill_token": "Programmatic: grants 1 perk point. Optional limit: 1 per 10 levels."
+        };
+
+        // ---------- State ----------
+        let configObj = structuredClone(DEFAULT_CONFIG);
         let fileLoaded = false;
 
+        // ItemIndex state
+        let itemIndexLoaded = false;
+        let itemKeys = []; // string list
+
+        // ---------- Elements ----------
         const els = {
             pathText: document.getElementById("pathText"),
+            itemIndexPathText: document.getElementById("itemIndexPathText"),
+
             copyPathBtn: document.getElementById("copyPathBtn"),
+            copyItemIndexPathBtn: document.getElementById("copyItemIndexPathBtn"),
             copyMsg: document.getElementById("copyMsg"),
 
             fileInput: document.getElementById("fileInput"),
             loadStatus: document.getElementById("loadStatus"),
+
+            itemIndexInput: document.getElementById("itemIndexInput"),
+            itemIndexStatus: document.getElementById("itemIndexStatus"),
 
             TurnOnTeleportCommands: document.getElementById("TurnOnTeleportCommands"),
             TurnOnStarterKits: document.getElementById("TurnOnStarterKits"),
             TurnOnHideCommandsWithSlashes: document.getElementById("TurnOnHideCommandsWithSlashes"),
             TeleportCooldownSeconds: document.getElementById("TeleportCooldownSeconds"),
 
+            RP_Enabled: document.getElementById("RP_Enabled"),
+            RP_MinutesPerPoint: document.getElementById("RP_MinutesPerPoint"),
+            RP_TickSeconds: document.getElementById("RP_TickSeconds"),
+            RP_SaveIntervalSeconds: document.getElementById("RP_SaveIntervalSeconds"),
+
+            // BloodMoonRewards
+            BM_Enabled: document.getElementById("BM_Enabled"),
+            BM_PresenceRewardRP: document.getElementById("BM_PresenceRewardRP"),
+            BM_RequirePresenceForRankRewards: document.getElementById("BM_RequirePresenceForRankRewards"),
+            BM_AnnounceRewardMessages: document.getElementById("BM_AnnounceRewardMessages"),
+            BM_PartyFirst: document.getElementById("BM_PartyFirst"),
+            BM_PartySecond: document.getElementById("BM_PartySecond"),
+            BM_SoloFirst: document.getElementById("BM_SoloFirst"),
+            BM_SoloSecond: document.getElementById("BM_SoloSecond"),
+
+            Shop_Enabled: document.getElementById("Shop_Enabled"),
+            Shop_LogPurchases: document.getElementById("Shop_LogPurchases"),
+
+            addItemKey: document.getElementById("addItemKey"),
+            addItemEnabled: document.getElementById("addItemEnabled"),
+            addItemCost: document.getElementById("addItemCost"),
+            addShopItemBtn: document.getElementById("addShopItemBtn"),
+            addShopItemStatus: document.getElementById("addShopItemStatus"),
+            itemKeysDatalist: document.getElementById("itemKeysDatalist"),
+
+            shopTableBody: document.getElementById("shopTableBody"),
+
             saveBtn: document.getElementById("saveBtn"),
             saveStatus: document.getElementById("saveStatus"),
         };
 
+        // ---------- Helpers ----------
         function setLoadStatus(msg, ok = true) {
             els.loadStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
         }
-
+        function setItemIndexStatus(msg, ok = true) {
+            els.itemIndexStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
+        }
         function setSaveStatus(msg, ok = true) {
             els.saveStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
         }
-
         function setCopyMsg(msg) {
             els.copyMsg.innerHTML = `<span class="ok">${msg}</span>`;
             setTimeout(() => els.copyMsg.innerHTML = "", 1500);
         }
+        function setAddShopItemStatus(msg, ok = true) {
+            els.addShopItemStatus.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="warn">${msg}</span>`;
+            setTimeout(() => els.addShopItemStatus.innerHTML = "", 2500);
+        }
+        async function copyText(text) {
+            try { await navigator.clipboard.writeText(text); setCopyMsg("Copied!"); }
+            catch { setCopyMsg("Copy failed"); }
+        }
 
+        function deepMerge(target, source) {
+            if (!source || typeof source !== "object") return target;
+            for (const key of Object.keys(source)) {
+                const sv = source[key];
+                const tv = target[key];
+                if (sv && typeof sv === "object" && !Array.isArray(sv)) {
+                    target[key] = deepMerge(tv && typeof tv === "object" ? tv : {}, sv);
+                } else {
+                    target[key] = sv;
+                }
+            }
+            return target;
+        }
+
+        function ensureShape() {
+            // RewardPoints
+            if (!configObj.RewardPoints) configObj.RewardPoints = structuredClone(DEFAULT_CONFIG.RewardPoints);
+            if (typeof configObj.RewardPoints.Enabled !== "boolean") configObj.RewardPoints.Enabled = true;
+            configObj.RewardPoints.MinutesPerPoint = Math.max(1, Number(configObj.RewardPoints.MinutesPerPoint || DEFAULT_CONFIG.RewardPoints.MinutesPerPoint));
+            configObj.RewardPoints.TickSeconds = Math.max(1, Number(configObj.RewardPoints.TickSeconds || DEFAULT_CONFIG.RewardPoints.TickSeconds));
+            configObj.RewardPoints.SaveIntervalSeconds = Math.max(5, Number(configObj.RewardPoints.SaveIntervalSeconds || DEFAULT_CONFIG.RewardPoints.SaveIntervalSeconds));
+
+            // BloodMoonRewards
+            if (!configObj.BloodMoonRewards) configObj.BloodMoonRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards);
+            if (typeof configObj.BloodMoonRewards.Enabled !== "boolean") configObj.BloodMoonRewards.Enabled = true;
+
+            configObj.BloodMoonRewards.PresenceRewardRP = Math.max(0, Number(configObj.BloodMoonRewards.PresenceRewardRP ?? DEFAULT_CONFIG.BloodMoonRewards.PresenceRewardRP));
+
+            if (!configObj.BloodMoonRewards.PartyRankRewards) configObj.BloodMoonRewards.PartyRankRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards);
+            if (!configObj.BloodMoonRewards.SoloRankRewards) configObj.BloodMoonRewards.SoloRankRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards);
+
+            configObj.BloodMoonRewards.PartyRankRewards.FirstPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.PartyRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards.FirstPlaceRP));
+            configObj.BloodMoonRewards.PartyRankRewards.SecondPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.PartyRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards.SecondPlaceRP));
+
+            configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.FirstPlaceRP));
+            configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.SecondPlaceRP));
+
+            if (typeof configObj.BloodMoonRewards.RequirePresenceForRankRewards !== "boolean")
+                configObj.BloodMoonRewards.RequirePresenceForRankRewards = !!DEFAULT_CONFIG.BloodMoonRewards.RequirePresenceForRankRewards;
+
+            if (typeof configObj.BloodMoonRewards.AnnounceRewardMessages !== "boolean")
+                configObj.BloodMoonRewards.AnnounceRewardMessages = !!DEFAULT_CONFIG.BloodMoonRewards.AnnounceRewardMessages;
+
+            // Shop
+            if (!configObj.Shop) configObj.Shop = structuredClone(DEFAULT_CONFIG.Shop);
+            if (typeof configObj.Shop.Enabled !== "boolean") configObj.Shop.Enabled = true;
+            if (typeof configObj.Shop.LogPurchases !== "boolean") configObj.Shop.LogPurchases = true;
+            if (!configObj.Shop.Items || typeof configObj.Shop.Items !== "object") configObj.Shop.Items = {};
+
+            // Always ensure locked items exist
+            for (const k of LOCKED_KEYS) {
+                if (!configObj.Shop.Items[k]) configObj.Shop.Items[k] = structuredClone(DEFAULT_CONFIG.Shop.Items[k]);
+                if (typeof configObj.Shop.Items[k].Enabled !== "boolean") configObj.Shop.Items[k].Enabled = true;
+                if (!Number.isFinite(Number(configObj.Shop.Items[k].CostRP))) configObj.Shop.Items[k].CostRP = Number(DEFAULT_CONFIG.Shop.Items[k].CostRP || 0);
+                if (k === "skill_token") {
+                    if (typeof configObj.Shop.Items[k].LimitPer10Levels !== "boolean") {
+                        configObj.Shop.Items[k].LimitPer10Levels = !!DEFAULT_CONFIG.Shop.Items[k].LimitPer10Levels;
+                    }
+                }
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        // ---------- ItemIndex parsing ----------
+        function buildDatalist() {
+            els.itemKeysDatalist.innerHTML = "";
+            for (const k of itemKeys) {
+                const opt = document.createElement("option");
+                opt.value = k;
+                els.itemKeysDatalist.appendChild(opt);
+            }
+        }
+
+        function parseItemIndex(obj) {
+            let keys = [];
+            if (Array.isArray(obj)) {
+                keys = obj.filter(x => typeof x === "string");
+            } else if (obj && typeof obj === "object") {
+                if (Array.isArray(obj.Items)) {
+                    keys = obj.Items.filter(x => typeof x === "string");
+                } else {
+                    keys = Object.keys(obj);
+                }
+            }
+            keys = keys
+                .map(x => String(x).trim())
+                .filter(x => x.length > 0)
+                .sort((a, b) => a.localeCompare(b));
+            return keys;
+        }
+
+        // ---------- UI <-> Config ----------
         function uiFromConfig() {
             els.TurnOnTeleportCommands.value = String(!!configObj.TurnOnTeleportCommands);
             els.TurnOnStarterKits.value = String(!!configObj.TurnOnStarterKits);
@@ -195,9 +591,29 @@
 
             const cd = Number(configObj.TeleportCooldownSeconds || 0);
             els.TeleportCooldownSeconds.value =
-                [...els.TeleportCooldownSeconds.options].some(o => o.value === String(cd))
-                    ? String(cd)
-                    : "0";
+                [...els.TeleportCooldownSeconds.options].some(o => o.value === String(cd)) ? String(cd) : "0";
+
+            els.RP_Enabled.value = String(!!configObj.RewardPoints.Enabled);
+            els.RP_MinutesPerPoint.value = Number(configObj.RewardPoints.MinutesPerPoint || DEFAULT_CONFIG.RewardPoints.MinutesPerPoint);
+            els.RP_TickSeconds.value = Number(configObj.RewardPoints.TickSeconds || DEFAULT_CONFIG.RewardPoints.TickSeconds);
+            els.RP_SaveIntervalSeconds.value = Number(configObj.RewardPoints.SaveIntervalSeconds || DEFAULT_CONFIG.RewardPoints.SaveIntervalSeconds);
+
+            // BloodMoonRewards
+            els.BM_Enabled.value = String(!!configObj.BloodMoonRewards.Enabled);
+            els.BM_PresenceRewardRP.value = Number(configObj.BloodMoonRewards.PresenceRewardRP ?? DEFAULT_CONFIG.BloodMoonRewards.PresenceRewardRP);
+            els.BM_RequirePresenceForRankRewards.value = String(!!configObj.BloodMoonRewards.RequirePresenceForRankRewards);
+            els.BM_AnnounceRewardMessages.value = String(!!configObj.BloodMoonRewards.AnnounceRewardMessages);
+
+            els.BM_PartyFirst.value = Number(configObj.BloodMoonRewards.PartyRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards.FirstPlaceRP);
+            els.BM_PartySecond.value = Number(configObj.BloodMoonRewards.PartyRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards.SecondPlaceRP);
+
+            els.BM_SoloFirst.value = Number(configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.FirstPlaceRP);
+            els.BM_SoloSecond.value = Number(configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.SecondPlaceRP);
+
+            els.Shop_Enabled.value = String(!!configObj.Shop.Enabled);
+            els.Shop_LogPurchases.value = String(!!configObj.Shop.LogPurchases);
+
+            renderShopTable();
         }
 
         function configFromUi() {
@@ -205,16 +621,138 @@
             configObj.TurnOnStarterKits = els.TurnOnStarterKits.value === "true";
             configObj.TurnOnHideCommandsWithSlashes = els.TurnOnHideCommandsWithSlashes.value === "true";
             configObj.TeleportCooldownSeconds = Number(els.TeleportCooldownSeconds.value) || 0;
+
+            configObj.RewardPoints.Enabled = els.RP_Enabled.value === "true";
+            configObj.RewardPoints.MinutesPerPoint = Math.max(1, Number(els.RP_MinutesPerPoint.value) || DEFAULT_CONFIG.RewardPoints.MinutesPerPoint);
+            configObj.RewardPoints.TickSeconds = Math.max(1, Number(els.RP_TickSeconds.value) || DEFAULT_CONFIG.RewardPoints.TickSeconds);
+            configObj.RewardPoints.SaveIntervalSeconds = Math.max(5, Number(els.RP_SaveIntervalSeconds.value) || DEFAULT_CONFIG.RewardPoints.SaveIntervalSeconds);
+
+            // BloodMoonRewards
+            configObj.BloodMoonRewards.Enabled = els.BM_Enabled.value === "true";
+            configObj.BloodMoonRewards.PresenceRewardRP = Math.max(0, Number(els.BM_PresenceRewardRP.value) || 0);
+            configObj.BloodMoonRewards.RequirePresenceForRankRewards = els.BM_RequirePresenceForRankRewards.value === "true";
+            configObj.BloodMoonRewards.AnnounceRewardMessages = els.BM_AnnounceRewardMessages.value === "true";
+
+            if (!configObj.BloodMoonRewards.PartyRankRewards) configObj.BloodMoonRewards.PartyRankRewards = {};
+            if (!configObj.BloodMoonRewards.SoloRankRewards) configObj.BloodMoonRewards.SoloRankRewards = {};
+
+            configObj.BloodMoonRewards.PartyRankRewards.FirstPlaceRP = Math.max(0, Number(els.BM_PartyFirst.value) || 0);
+            configObj.BloodMoonRewards.PartyRankRewards.SecondPlaceRP = Math.max(0, Number(els.BM_PartySecond.value) || 0);
+
+            configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.max(0, Number(els.BM_SoloFirst.value) || 0);
+            configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.max(0, Number(els.BM_SoloSecond.value) || 0);
+
+            configObj.Shop.Enabled = els.Shop_Enabled.value === "true";
+            configObj.Shop.LogPurchases = els.Shop_LogPurchases.value === "true";
+
+            const rows = els.shopTableBody.querySelectorAll("tr[data-key]");
+            for (const tr of rows) {
+                const key = tr.getAttribute("data-key");
+                const enabledSel = tr.querySelector("select[data-field='Enabled']");
+                const costInput = tr.querySelector("input[data-field='CostRP']");
+                if (!configObj.Shop.Items[key]) configObj.Shop.Items[key] = { Enabled: true, CostRP: 0 };
+
+                configObj.Shop.Items[key].Enabled = enabledSel.value === "true";
+                configObj.Shop.Items[key].CostRP = Math.max(0, Number(costInput.value) || 0);
+            }
+
+            // ensure locked entries + sections still exist
+            ensureShape();
         }
 
-        els.copyPathBtn.addEventListener("click", async () => {
-            try {
-                await navigator.clipboard.writeText(els.pathText.textContent);
-                setCopyMsg("Copied!");
-            } catch {
-                setCopyMsg("Copy failed");
+        function renderShopTable() {
+            const items = configObj.Shop.Items || {};
+            const keys = Object.keys(items).sort((a, b) => a.localeCompare(b));
+
+            els.shopTableBody.innerHTML = "";
+
+            for (const key of keys) {
+                const cfg = items[key] || {};
+                const enabled = cfg.Enabled !== false;
+                const cost = Number.isFinite(Number(cfg.CostRP)) ? Number(cfg.CostRP) : 0;
+                const locked = LOCKED_KEYS.has(key);
+
+                const desc = SHOP_DESCRIPTIONS[key] || "Custom shop item (spawned item key).";
+                const tr = document.createElement("tr");
+                tr.setAttribute("data-key", key);
+                if (!enabled) tr.classList.add("disabled-row");
+                if (locked) tr.classList.add("danger");
+
+                tr.innerHTML = `
+              <td>
+                <code>${escapeHtml(key)}</code>
+                ${locked ? `<div class="locked">Locked programmatic item (cannot remove/rename)</div>` : ``}
+                ${key === "skill_token" && cfg.LimitPer10Levels ? `<div class="pill">LimitPer10Levels</div>` : ``}
+              </td>
+              <td>
+                <select data-field="Enabled">
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </td>
+              <td>
+                <input type="number" min="0" step="1" data-field="CostRP" />
+              </td>
+              <td>${escapeHtml(desc)}</td>
+              <td>
+                ${locked ? `<span class="locked">Locked</span>` : `<button type="button" data-action="remove">Remove</button>`}
+              </td>
+            `;
+
+                const enabledSel = tr.querySelector("select[data-field='Enabled']");
+                const costInput = tr.querySelector("input[data-field='CostRP']");
+
+                enabledSel.value = String(enabled);
+                costInput.value = String(cost);
+
+                enabledSel.addEventListener("change", () => {
+                    tr.classList.toggle("disabled-row", enabledSel.value !== "true");
+                });
+
+                const removeBtn = tr.querySelector("button[data-action='remove']");
+                if (removeBtn) {
+                    removeBtn.addEventListener("click", () => {
+                        delete configObj.Shop.Items[key];
+                        ensureShape(); // re-add locked if needed
+                        renderShopTable();
+                    });
+                }
+
+                els.shopTableBody.appendChild(tr);
             }
-        });
+        }
+
+        // ---------- Add item ----------
+        function addShopItem() {
+            const key = String(els.addItemKey.value || "").trim();
+            if (!key) return setAddShopItemStatus("Enter an item key.", false);
+
+            if (LOCKED_KEYS.has(key)) {
+                return setAddShopItemStatus("That key is locked/programmatic. Edit it in the table instead.", false);
+            }
+
+            // optional validation against ItemIndex if loaded
+            if (itemIndexLoaded) {
+                const exists = itemKeys.includes(key);
+                if (!exists) {
+                    setAddShopItemStatus("Warning: key not found in ItemIndex. Added anyway.", false);
+                }
+            }
+
+            if (!configObj.Shop.Items) configObj.Shop.Items = {};
+            configObj.Shop.Items[key] = {
+                Enabled: els.addItemEnabled.value === "true",
+                CostRP: Math.max(0, Number(els.addItemCost.value) || 0)
+            };
+
+            els.addItemKey.value = "";
+            renderShopTable();
+            setAddShopItemStatus("Added.", true);
+        }
+
+        // ---------- Events ----------
+        els.copyPathBtn.addEventListener("click", () => copyText(els.pathText.textContent));
+        els.copyItemIndexPathBtn.addEventListener("click", () => copyText(els.itemIndexPathText.textContent));
 
         els.fileInput.addEventListener("change", async (e) => {
             const file = e.target.files?.[0];
@@ -229,14 +767,45 @@
                     return;
                 }
 
-                configObj = { ...configObj, ...obj };
+                configObj = structuredClone(DEFAULT_CONFIG);
+                deepMerge(configObj, obj);
+                ensureShape();
                 uiFromConfig();
-                fileLoaded = true;
 
+                fileLoaded = true;
                 setLoadStatus(`Loaded: ${file.name}`, true);
                 setSaveStatus("");
-            } catch (err) {
+            } catch {
                 setLoadStatus("Failed to load file", false);
+            }
+        });
+
+        els.itemIndexInput.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const obj = JSON.parse(text);
+
+                itemKeys = parseItemIndex(obj);
+                buildDatalist();
+
+                itemIndexLoaded = true;
+                setItemIndexStatus(`Loaded: ${file.name} (${itemKeys.length} keys)`, true);
+            } catch {
+                itemIndexLoaded = false;
+                itemKeys = [];
+                els.itemKeysDatalist.innerHTML = "";
+                setItemIndexStatus("Failed to load ItemIndex.json", false);
+            }
+        });
+
+        els.addShopItemBtn.addEventListener("click", addShopItem);
+        els.addItemKey.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+                ev.preventDefault();
+                addShopItem();
             }
         });
 
@@ -263,8 +832,11 @@
             setSaveStatus("Saved. Replace the existing config.json with the downloaded file.", true);
         });
 
+        // ---------- Init ----------
+        ensureShape();
         uiFromConfig();
         setLoadStatus("No file loaded.", false);
+        setItemIndexStatus("No ItemIndex loaded (autocomplete disabled).", false);
     </script>
 
 </body>

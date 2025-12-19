@@ -3,34 +3,47 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using DataPlayer = DMChatTeleport.DataModel.PlayerData;
-using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
+using DataPlayer = DMChatTeleport.PlayerDataStore.PlayerData;
+using PlayerStorage = DMChatTeleport.PlayerDataStore.PlayerStorage;
 
-
-    namespace DMChatTeleports
+namespace DMChatTeleport
 {
     public static class CommandHandler
     {
         // Small delay between item grants (prevents client getting hammered)
         private const int StarterKitGiveDelayMs = 50; // tweak: 50–250ms
 
-        public static void ProcessCommand(string steamId, int entityId, string cmd)
+        /// <summary>
+        /// playerId must be a persistent ID string (EOS_... OR Steam_... OR other PlatformId/CrossId CombinedString).
+        /// entityId is used for teleport/give/sayplayer commands.
+        /// </summary>
+        public static void ProcessCommand(string playerId, int entityId, string cmd)
         {
-            PlayerStorage.Load();
+            if (string.IsNullOrWhiteSpace(cmd))
+                return;
 
-            DataPlayer player = PlayerStorage.Get(steamId);
+            // Accept ANY non-empty persistent id. Do NOT enforce EOS-only.
+            if (string.IsNullOrWhiteSpace(playerId))
+            {
+                Debug.LogWarning("[DMChatTeleport] CommandHandler.ProcessCommand called with empty playerId.");
+                return;
+            }
+
+            bool created;
+            DataPlayer player = PlayerStorage.GetOrCreate(playerId, out created);
             player.entityId = entityId;
 
-            // Ensure player record exists and is persisted even if this is the first command they ever use
-            // used to prevent players from getting infinite starterkits
-            PlayerStorage.Save();
+            if (created)
+                PlayerStorage.Save();
 
             World world = GameManager.Instance.World;
+            if (world == null)
+                return;
 
             // --------------------------------------------------------------------
             // Reloads Config Options
             // --------------------------------------------------------------------
-            if (cmd == "/reloadconfig")
+            if (cmd.Equals("/reloadconfig", StringComparison.OrdinalIgnoreCase))
             {
                 ConfigManager.Load();
                 SendServerMessage(entityId, "Config reloaded.");
@@ -40,13 +53,14 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // --------------------------------------------------------------------
             // TELEPORT COMMANDS DISABLED?
             // --------------------------------------------------------------------
-            bool teleportsEnabled = ConfigManager.Config.TurnOnTeleportCommands;
-            bool kitsEnabled = ConfigManager.Config.TurnOnStarterKits;
+            bool teleportsEnabled = ConfigManager.Config != null && ConfigManager.Config.TurnOnTeleportCommands;
+            bool kitsEnabled = ConfigManager.Config != null && ConfigManager.Config.TurnOnStarterKits;
 
             // --------------------------------------------------------------------
             // CheckIfBloodmoonisActive
             // ====================================================================
-            if (cmd == "/isbloodmoon" || cmd == "/isbloomoon")
+            if (cmd.Equals("/isbloodmoon", StringComparison.OrdinalIgnoreCase) ||
+                cmd.Equals("/isbloomoon", StringComparison.OrdinalIgnoreCase))
             {
                 bool active = BloodMoonUtil.IsActiveNow();
                 var info = BloodMoonUtil.GetDebugInfo();
@@ -57,11 +71,10 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 return;
             }
 
-
             // ====================================================================
             // TELEPORT: SETBASE
             // ====================================================================
-            if (cmd == "/setbase")
+            if (cmd.Equals("/setbase", StringComparison.OrdinalIgnoreCase))
             {
                 if (!teleportsEnabled)
                 {
@@ -87,7 +100,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // TELEPORT: /base
             // ====================================================================
-            if (cmd == "/base")
+            if (cmd.Equals("/base", StringComparison.OrdinalIgnoreCase))
             {
                 if (!teleportsEnabled)
                 {
@@ -124,7 +137,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // TELEPORT: /return
             // ====================================================================
-            if (cmd == "/return")
+            if (cmd.Equals("/return", StringComparison.OrdinalIgnoreCase))
             {
                 if (!teleportsEnabled)
                 {
@@ -152,7 +165,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // HELP COMMAND (Dynamic)
             // ====================================================================
-            if (cmd == "/help")
+            if (cmd.Equals("/help", StringComparison.OrdinalIgnoreCase))
             {
                 SendServerMessage(entityId, "Commands:");
 
@@ -176,7 +189,9 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // STARTER KITS DISABLED
             // ====================================================================
-            if (!kitsEnabled && (cmd.StartsWith("/pick") || cmd.StartsWith("/choose") || cmd == "/liststarterkits"))
+            if (!kitsEnabled && (cmd.StartsWith("/pick", StringComparison.OrdinalIgnoreCase) ||
+                                cmd.StartsWith("/choose", StringComparison.OrdinalIgnoreCase) ||
+                                cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase)))
             {
                 SendServerMessage(entityId, "Starter kits are disabled on this server.");
                 return;
@@ -185,7 +200,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // LIST STARTER KITS
             // ====================================================================
-            if (cmd == "/liststarterkits")
+            if (cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase))
             {
                 if (StarterKitManager.Kits.Count == 0)
                 {
@@ -207,16 +222,20 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             // ====================================================================
             // PICK STARTER KIT
             // ====================================================================
-            if (cmd.StartsWith("/pick") || cmd.StartsWith("/choose"))
+            if (cmd.StartsWith("/pick", StringComparison.OrdinalIgnoreCase) ||
+                cmd.StartsWith("/choose", StringComparison.OrdinalIgnoreCase))
             {
-                string[] split = cmd.Split(' ');
+                string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length < 2)
                 {
                     SendServerMessage(entityId, "Usage: /pick <name>");
                     return;
                 }
 
-                string kitName = split[1];
+                // Supports kit names with spaces if you ever want it later:
+                // /pick "Cool Kit Name"
+                // For now: join everything after /pick
+                string kitName = string.Join(" ", split, 1, split.Length - 1);
 
                 if (player.HasPickedStarterKit)
                 {
@@ -246,7 +265,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 }
                 else
                 {
-                    // Normal selection
                     if (!StarterKitManager.TryGetKit(kitName, out kit))
                     {
                         SendServerMessage(entityId, "Starter kit not found.");
@@ -290,112 +308,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
 
                 return;
             }
-
-            /*
-            // ====================================================================
-            // Usage: /testkit <name>
-            // COMMENT OUT AFTER TESTING
-            // ====================================================================
-            if (cmd.StartsWith("/testkit ", StringComparison.OrdinalIgnoreCase))
-            {
-                StarterKitManager.Load();
-
-                string[] split = cmd.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
-                {
-                    SendServerMessage(entityId, "Usage: /testkit <name>");
-                    return;
-                }
-
-                string kitName = split[1].Trim();
-
-                if (!StarterKitManager.TryGetKit(kitName, out var kit) || kit == null)
-                {
-                    SendServerMessage(entityId, $"Kit not found: {kitName}");
-                    return;
-                }
-
-                if (kit.Items == null || kit.Items.Count == 0)
-                {
-                    SendServerMessage(entityId, $"Kit '{kit.Name}' has no items.");
-                    return;
-                }
-
-                SendServerMessage(entityId, $"[TEST] Giving kit: {kit.Name}");
-
-                int i = 0;
-                foreach (var item in kit.Items)
-                {
-                    i++;
-
-                    if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
-                    {
-                        SendServerMessage(entityId, $"{i}. (skipped invalid item entry)");
-                        Thread.Sleep(StarterKitGiveDelayMs);
-                        continue;
-                    }
-
-                    int q = item.Quality <= 0 ? 1 : item.Quality;
-                    bool given = GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
-
-                    if (given)
-                        SendServerMessage(entityId, $"{i}. {item.ItemName} x{item.Count} (Q{q})");
-                    else
-                        SendServerMessage(entityId, $"{i}. (skipped) {item.ItemName} - item not found / invalid");
-
-                    Thread.Sleep(StarterKitGiveDelayMs);
-                }
-
-                SendServerMessage(entityId, $"[TEST] Done: {kit.Name}");
-                return;
-            }
-
-
-
-            // ====================================================================
-            // TEMP TEST: GIVE ALL KITS (NO ADMIN CHECK)
-            // Usage: /testkits
-            // COMMENT OUT AFTER TESTING
-            // ====================================================================
-            if (cmd.Equals("/testkits", StringComparison.OrdinalIgnoreCase))
-            {
-                StarterKitManager.Load();
-
-                if (StarterKitManager.Kits.Count == 0)
-                {
-                    SendServerMessage(entityId, "[TEST] No starter kits available.");
-                    return;
-                }
-
-                SendServerMessage(entityId, $"[TEST] Giving ALL kits: {StarterKitManager.Kits.Count}");
-
-                foreach (var kv in StarterKitManager.Kits)
-                {
-                    var kit = kv.Value;
-                    if (kit?.Items == null || kit.Items.Count == 0)
-                        continue;
-
-                    SendServerMessage(entityId, $"[TEST] Kit: {kit.Name}");
-
-                    foreach (var item in kit.Items)
-                    {
-                        if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
-                            continue;
-
-                        int q = item.Quality <= 0 ? 1 : item.Quality;
-
-                        GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
-
-                        Thread.Sleep(StarterKitGiveDelayMs);
-                    }
-                }
-
-                SendServerMessage(entityId, "[TEST] Done giving all kits.");
-                return;
-            }
-
-            */
-
         }
 
         private static void Teleport(int entityId, Vector3 pos)
@@ -413,7 +325,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 null
             );
         }
-
 
         public static bool GiveItemToPlayer(int entityId, string itemName, int count, int quality = 1)
         {
@@ -435,10 +346,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 if (resolved?.ItemClass != null)
                     maxStack = Math.Max(1, resolved.ItemClass.Stacknumber.Value);
             }
-            catch
-            {
-
-            }
+            catch { }
 
             int remaining = count;
             while (remaining > 0)
@@ -446,7 +354,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 int giveNow = Math.Min(remaining, maxStack);
 
                 bool ok = GiveItemViaForcedPickup(entityId, itemName, resolved, giveNow, quality);
-
 
                 if (!ok)
                 {
@@ -470,8 +377,7 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
 
             try
             {
-                // resolve without changing the original string, but lookup case-insensitive
-                ItemClass itemClass = ItemClass.GetItemClass(itemName, true) ?? ItemClass.GetItemClass(itemName, false); // fallback
+                ItemClass itemClass = ItemClass.GetItemClass(itemName, true) ?? ItemClass.GetItemClass(itemName, false);
 
                 if (itemClass == null)
                 {
@@ -497,7 +403,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                 return false;
             }
         }
-
 
         private static bool GiveItemViaForcedPickup(int entityId, string itemName, ItemValue resolved, int count, int quality = 1)
         {
@@ -545,7 +450,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
             return true;
         }
 
-
         private static bool TryConsumeTeleportCooldown(int entityId, DataPlayer player)
         {
             int cdSeconds = ConfigManager.Config?.TeleportCooldownSeconds ?? 0;
@@ -565,7 +469,6 @@ using PlayerStorage = DMChatTeleport.DataModel.PlayerStorage;
                     return false;
                 }
             }
-
 
             player.LastTeleportUtcTicks = nowTicks;
             PlayerStorage.Save();

@@ -1,17 +1,31 @@
-﻿namespace DMChatTeleports
+﻿namespace DMChatTeleport
 {
     public static class BloodMoonUtil
     {
-        public static bool IsActiveNow()
+        private static bool TryGetTime(out int day, out int hour, out int bmDay, out int dusk, out int dawn)
         {
+            day = hour = bmDay = dusk = dawn = 0;
+
             var world = GameManager.Instance?.World;
             if (world == null)
                 return false;
 
-            int day = GameUtils.WorldTimeToDays(world.worldTime);
-            int hour = GameUtils.WorldTimeToHours(world.worldTime);
+            day = GameUtils.WorldTimeToDays(world.worldTime);
+            hour = GameUtils.WorldTimeToHours(world.worldTime);
 
-            int bmDay = GameStats.GetInt(EnumGameStats.BloodMoonDay);
+            bmDay = GameStats.GetInt(EnumGameStats.BloodMoonDay);
+            var duskDawn = GameUtils.CalcDuskDawnHours(GameStats.GetInt(EnumGameStats.DayLightLength));
+            dusk = duskDawn.duskHour;
+            dawn = duskDawn.dawnHour;
+
+            return true;
+        }
+
+        public static bool IsActiveNow()
+        {
+            if (!TryGetTime(out int day, out int hour, out int bmDay, out int dusk, out int dawn))
+                return false;
+
             if (bmDay <= 0)
                 return false;
 
@@ -19,20 +33,18 @@
             return GameUtils.IsBloodMoonTime(duskDawn, hour, bmDay, day);
         }
 
-
         public static (int day, int hour, int bmDay, int dusk, int dawn) GetDebugInfo()
         {
-            var world = GameManager.Instance?.World;
-            if (world == null)
+            if (!TryGetTime(out int day, out int hour, out int bmDay, out int dusk, out int dawn))
                 return (0, 0, 0, 0, 0);
 
-            int day = GameUtils.WorldTimeToDays(world.worldTime);
-            int hour = GameUtils.WorldTimeToHours(world.worldTime);
-            int bmDay = GameStats.GetInt(EnumGameStats.BloodMoonDay);
+            return (day, hour, bmDay, dusk, dawn);
+        }
 
-            var duskDawn = GameUtils.CalcDuskDawnHours(GameStats.GetInt(EnumGameStats.DayLightLength));
-            return (day, hour, bmDay, duskDawn.duskHour, duskDawn.dawnHour);
+        public static string GetDebugString()
+        {
+            var info = GetDebugInfo();
+            return $"Day={info.day} Hour={info.hour} | BMDay={info.bmDay} | Window={info.dusk}:00->{info.dawn}:00";
         }
     }
-
 }
