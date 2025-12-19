@@ -1,13 +1,13 @@
 ﻿using HarmonyLib;
 
-namespace DMChatTeleports
+namespace DMChatTeleport
 {
     [HarmonyPatch(typeof(EntityAlive), "AwardKill")]
     public class Patch_EntityAlive_AwardKill
     {
         static void Postfix(EntityAlive __instance, EntityAlive killer)
         {
-            if (!DMChatTeleport.BloodMoonKillTracker.IsCounting)
+            if (!BloodMoonKillTracker.IsCounting)
                 return;
 
             if (__instance == null || killer == null)
@@ -23,14 +23,19 @@ namespace DMChatTeleports
             if (cInfo == null)
                 return;
 
-            string playerId = DMChatTeleport.PlayerIdUtil.GetPersistentIdOrNull(cInfo);
+            string playerId = PlayerIdUtil.GetPersistentIdOrNull(cInfo);
             if (string.IsNullOrWhiteSpace(playerId))
                 return;
 
             string playerName = cInfo.playerName;
 
-            int partyId = PartyUtil.TryGetPartyIdForEntity(killer); // 0 = Solo
-            DMChatTeleport.BloodMoonKillTracker.AddKill(playerId, playerName, partyId);
+            // Real partyId if in party, otherwise unique solo "party-of-1" id.
+            int realPartyId = PartyUtil.TryGetPartyIdForEntity(killer); // 0 for solo
+            int effectivePartyId = (realPartyId > 0)
+                ? realPartyId
+                : -cInfo.entityId; // unique per solo player (negative avoids collisions)
+
+            BloodMoonKillTracker.AddKill(playerId, playerName, effectivePartyId);
         }
     }
 }

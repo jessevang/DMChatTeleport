@@ -97,6 +97,7 @@
     <Compile Include="Scripts\Patch_EntityAlive_AwardKill.cs" />
     <Compile Include="Scripts\PurchaseRecord.cs" />
     <Compile Include="Scripts\RewardPointsManager.cs" />
+    <Compile Include="Scripts\CommandHandlerShop.cs" />
     <Compile Include="Scripts\StarterKit.cs" />
     <Compile Include="Scripts\StarterKitManager.cs" />
     <Compile Include="Scripts\WelcomeManager.cs" />

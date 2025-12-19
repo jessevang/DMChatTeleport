@@ -13,21 +13,38 @@
 
   "BloodMoonRewards": {
     "Enabled": true,
-    "PresenceRewardRP": 1,
+
+    "RequirePresenceForRankRewards": true,
+    "AnnounceRewardMessages": true,
+
+    "Presence": {
+      "Enabled": true,
+      "RP": 1
+    },
 
     "PartyRankRewards": {
+      "Enabled": true,
       "FirstPlaceRP": 5,
       "SecondPlaceRP": 3
     },
 
     "SoloRankRewards": {
+      "Enabled": true,
       "FirstPlaceRP": 5,
       "SecondPlaceRP": 3
     },
 
-    "RequirePresenceForRankRewards": true,
-    "AnnounceRewardMessages": true
+    "Bonuses": {
+      "KillStep": {
+        "Enabled": false,
+        "EveryKills": 10,
+        "RPPerStep": 1,
+        "MaxRP": 0
+      }
+
+    }
   },
+
 
   "Shop": {
     "Enabled": true,
@@ -37,7 +54,7 @@
         "Enabled": true,
         "CostRP": 3
       },
-      "pocket_3": {
+      "modArmorTripleStoragePocket": {
         "Enabled": true,
         "CostRP": 3
       },

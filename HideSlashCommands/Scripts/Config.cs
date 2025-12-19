@@ -29,38 +29,85 @@ namespace DMChatTeleport
         public int SaveIntervalSeconds = 60;
     }
 
+    // -----------------------------
+    // Blood Moon Rewards
+    // -----------------------------
     public class BloodMoonRewardsConfig
     {
         public bool Enabled = true;
 
-        public int PresenceRewardRP = 1;
-
-        public PartyRankRewardsConfig PartyRankRewards = new PartyRankRewardsConfig();
-        public SoloRankRewardsConfig SoloRankRewards = new SoloRankRewardsConfig();
-
+        // If true, require that a player is present to receive rank rewards
         public bool RequirePresenceForRankRewards = true;
 
+        // If true, send private messages (sayplayer) about rewards earned
         public bool AnnounceRewardMessages = true;
+
+        // Presence reward (per player present during blood moon)
+        public PresenceRewardConfig Presence = new PresenceRewardConfig();
+
+        // Party ranking rewards (1st/2nd party)
+        public PartyRankRewardsConfig PartyRankRewards = new PartyRankRewardsConfig();
+
+        // Individual ranking rewards (Top Kills 1st/2nd)
+        public SoloRankRewardsConfig SoloRankRewards = new SoloRankRewardsConfig();
+
+        // configurable bonus system (ONLY KillStep now)
+        public BloodMoonBonusConfig Bonuses = new BloodMoonBonusConfig();
+    }
+
+    public class PresenceRewardConfig
+    {
+        public bool Enabled = true;
+        public int RP = 1;
     }
 
     public class PartyRankRewardsConfig
     {
+        public bool Enabled = true;
         public int FirstPlaceRP = 5;
         public int SecondPlaceRP = 3;
     }
 
     public class SoloRankRewardsConfig
     {
+        public bool Enabled = true;
         public int FirstPlaceRP = 5;
         public int SecondPlaceRP = 3;
     }
 
+    // -----------------------------
+    // Blood Moon Bonus Configs
+    // -----------------------------
+    public class BloodMoonBonusConfig
+    {
+        // Give RP based on kills: every N kills gives X RP (per player)
+        public KillStepBonusConfig KillStep = new KillStepBonusConfig();
+    }
+
+    public class KillStepBonusConfig
+    {
+        public bool Enabled = false;
+
+        // Every N kills...
+        public int EveryKills = 10;
+
+        // ...gives this many RP
+        public int RPPerStep = 1;
+
+        // Optional cap per blood moon (0 = no cap)
+        public int MaxRP = 0;
+    }
+
+    // -----------------------------
+    // Shop
+    // -----------------------------
     public class ShopConfig
     {
         public bool Enabled = true;
         public bool LogPurchases = true;
 
-        public Dictionary<string, ShopItemConfig> Items = new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ShopItemConfig> Items =
+            new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase);
     }
 
     public class ShopItemConfig
@@ -116,6 +163,7 @@ namespace DMChatTeleport
 
                     ApplyDefaultsInPlace(Config);
 
+                    // Always write back to ensure new fields exist in config.json
                     Save();
                 }
                 catch (Exception ex)
@@ -174,11 +222,35 @@ namespace DMChatTeleport
             cfg.BloodMoonRewards = new BloodMoonRewardsConfig
             {
                 Enabled = true,
-                PresenceRewardRP = 1,
-                PartyRankRewards = new PartyRankRewardsConfig { FirstPlaceRP = 5, SecondPlaceRP = 3 },
-                SoloRankRewards = new SoloRankRewardsConfig { FirstPlaceRP = 5, SecondPlaceRP = 3 },
                 RequirePresenceForRankRewards = true,
-                AnnounceRewardMessages = true
+                AnnounceRewardMessages = true,
+
+                Presence = new PresenceRewardConfig { Enabled = true, RP = 1 },
+
+                PartyRankRewards = new PartyRankRewardsConfig
+                {
+                    Enabled = true,
+                    FirstPlaceRP = 5,
+                    SecondPlaceRP = 3
+                },
+
+                SoloRankRewards = new SoloRankRewardsConfig
+                {
+                    Enabled = true,
+                    FirstPlaceRP = 5,
+                    SecondPlaceRP = 3
+                },
+
+                Bonuses = new BloodMoonBonusConfig
+                {
+                    KillStep = new KillStepBonusConfig
+                    {
+                        Enabled = false,
+                        EveryKills = 10,
+                        RPPerStep = 1,
+                        MaxRP = 0
+                    }
+                }
             };
 
             cfg.Shop = new ShopConfig
@@ -189,9 +261,9 @@ namespace DMChatTeleport
             };
 
             cfg.Shop.Items["consumable_x5"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
-            cfg.Shop.Items["pocket_3"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
-            cfg.Shop.Items["armor_q3_random"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
+            cfg.Shop.Items["modArmorTripleStoragePocket"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
 
+            cfg.Shop.Items["armor_q3_random"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
             cfg.Shop.Items["reroll_item"] = new ShopItemConfig { Enabled = true, CostRP = 15 };
             cfg.Shop.Items["clone_item"] = new ShopItemConfig { Enabled = true, CostRP = 40 };
             cfg.Shop.Items["skill_token"] = new ShopItemConfig { Enabled = true, CostRP = 10, LimitPer10Levels = true };
@@ -204,6 +276,9 @@ namespace DMChatTeleport
             if (cfg == null)
                 return;
 
+            // -----------------------------
+            // Reward Points
+            // -----------------------------
             if (cfg.RewardPoints == null)
                 cfg.RewardPoints = new RewardPointsConfig();
 
@@ -211,10 +286,16 @@ namespace DMChatTeleport
             cfg.RewardPoints.TickSeconds = Math.Max(1, cfg.RewardPoints.TickSeconds);
             cfg.RewardPoints.SaveIntervalSeconds = Math.Max(5, cfg.RewardPoints.SaveIntervalSeconds);
 
+            // -----------------------------
+            // Blood Moon Rewards
+            // -----------------------------
             if (cfg.BloodMoonRewards == null)
                 cfg.BloodMoonRewards = new BloodMoonRewardsConfig();
 
-            cfg.BloodMoonRewards.PresenceRewardRP = Math.Max(0, cfg.BloodMoonRewards.PresenceRewardRP);
+            if (cfg.BloodMoonRewards.Presence == null)
+                cfg.BloodMoonRewards.Presence = new PresenceRewardConfig();
+
+            cfg.BloodMoonRewards.Presence.RP = Math.Max(0, cfg.BloodMoonRewards.Presence.RP);
 
             if (cfg.BloodMoonRewards.PartyRankRewards == null)
                 cfg.BloodMoonRewards.PartyRankRewards = new PartyRankRewardsConfig();
@@ -228,12 +309,27 @@ namespace DMChatTeleport
             cfg.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.Max(0, cfg.BloodMoonRewards.SoloRankRewards.FirstPlaceRP);
             cfg.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.Max(0, cfg.BloodMoonRewards.SoloRankRewards.SecondPlaceRP);
 
+            // Ensure bonuses exist + clamp
+            if (cfg.BloodMoonRewards.Bonuses == null)
+                cfg.BloodMoonRewards.Bonuses = new BloodMoonBonusConfig();
+
+            if (cfg.BloodMoonRewards.Bonuses.KillStep == null)
+                cfg.BloodMoonRewards.Bonuses.KillStep = new KillStepBonusConfig();
+
+            cfg.BloodMoonRewards.Bonuses.KillStep.EveryKills = Math.Max(1, cfg.BloodMoonRewards.Bonuses.KillStep.EveryKills);
+            cfg.BloodMoonRewards.Bonuses.KillStep.RPPerStep = Math.Max(0, cfg.BloodMoonRewards.Bonuses.KillStep.RPPerStep);
+            cfg.BloodMoonRewards.Bonuses.KillStep.MaxRP = Math.Max(0, cfg.BloodMoonRewards.Bonuses.KillStep.MaxRP);
+
+            // -----------------------------
+            // Shop
+            // -----------------------------
             if (cfg.Shop == null)
                 cfg.Shop = new ShopConfig();
 
             if (cfg.Shop.Items == null)
                 cfg.Shop.Items = new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase);
 
+            // Ensure baseline keys exist (you can delete these if you want zero "forced defaults")
             EnsureShopItem(cfg, "reroll_item", 15, limitPer10Levels: false);
             EnsureShopItem(cfg, "clone_item", 40, limitPer10Levels: false);
             EnsureShopItem(cfg, "skill_token", 10, limitPer10Levels: true);
@@ -259,13 +355,14 @@ namespace DMChatTeleport
                 cfg.Shop.Items[key] = new ShopItemConfig
                 {
                     Enabled = true,
-                    CostRP = defaultCost,
+                    CostRP = Math.Max(0, defaultCost),
                     LimitPer10Levels = limitPer10Levels
                 };
                 return;
             }
 
-            if (item.CostRP < 0) item.CostRP = defaultCost;
+            if (item.CostRP < 0)
+                item.CostRP = 0;
 
             if (key.Equals("skill_token", StringComparison.OrdinalIgnoreCase))
                 item.LimitPer10Levels = limitPer10Levels;

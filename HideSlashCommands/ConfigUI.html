@@ -230,7 +230,7 @@
         </div>
     </div>
 
-    <!-- NEW: BloodMoonRewards -->
+    <!-- BloodMoonRewards -->
     <div class="box">
         <div class="title" style="font-size:16px;">Blood Moon Rewards</div>
 
@@ -240,8 +240,8 @@
         </div>
 
         <div class="row">
-            <label>BloodMoonRewards.PresenceRewardRP</label>
-            <input id="BM_PresenceRewardRP" type="number" min="0" step="1" />
+            <label>BloodMoonRewards.Presence.RP</label>
+            <input id="BM_PresenceRP" type="number" min="0" step="1" />
             <span class="small">RP for any player present at least once during blood moon</span>
         </div>
 
@@ -259,12 +259,10 @@
 
         <div class="subgrid">
             <div class="pill">Party Rank Rewards</div>
-
             <div class="row">
                 <label>BloodMoonRewards.PartyRankRewards.FirstPlaceRP</label>
                 <input id="BM_PartyFirst" type="number" min="0" step="1" />
             </div>
-
             <div class="row">
                 <label>BloodMoonRewards.PartyRankRewards.SecondPlaceRP</label>
                 <input id="BM_PartySecond" type="number" min="0" step="1" />
@@ -272,16 +270,44 @@
         </div>
 
         <div class="subgrid">
-            <div class="pill">Solo Rank Rewards</div>
-
+            <div class="pill">Top Kills (Individual) Rewards</div>
             <div class="row">
                 <label>BloodMoonRewards.SoloRankRewards.FirstPlaceRP</label>
                 <input id="BM_SoloFirst" type="number" min="0" step="1" />
             </div>
-
             <div class="row">
                 <label>BloodMoonRewards.SoloRankRewards.SecondPlaceRP</label>
                 <input id="BM_SoloSecond" type="number" min="0" step="1" />
+            </div>
+        </div>
+
+        <div class="subgrid">
+            <div class="pill">Bonuses</div>
+
+            <div class="subgrid" style="padding-left: 10px;">
+                <div class="pill">Kill Step Bonus</div>
+
+                <div class="row">
+                    <label>Bonuses.KillStep.Enabled</label>
+                    <select id="BM_KillStep_Enabled"><option value="true">true</option><option value="false">false</option></select>
+                </div>
+
+                <div class="row">
+                    <label>Bonuses.KillStep.EveryKills</label>
+                    <input id="BM_KillStep_EveryKills" type="number" min="1" step="1" />
+                    <span class="small">Every N kills gives RPPerStep</span>
+                </div>
+
+                <div class="row">
+                    <label>Bonuses.KillStep.RPPerStep</label>
+                    <input id="BM_KillStep_RPPerStep" type="number" min="0" step="1" />
+                </div>
+
+                <div class="row">
+                    <label>Bonuses.KillStep.MaxRP</label>
+                    <input id="BM_KillStep_MaxRP" type="number" min="0" step="1" />
+                    <span class="small">0 = no cap</span>
+                </div>
             </div>
         </div>
     </div>
@@ -359,18 +385,24 @@
 
             RewardPoints: {
                 Enabled: true,
-                MinutesPerPoint: 1,
+                MinutesPerPoint: 30,
                 TickSeconds: 10,
                 SaveIntervalSeconds: 60
             },
 
             BloodMoonRewards: {
                 Enabled: true,
-                PresenceRewardRP: 1,
-                PartyRankRewards: { FirstPlaceRP: 5, SecondPlaceRP: 3 },
-                SoloRankRewards: { FirstPlaceRP: 5, SecondPlaceRP: 3 },
                 RequirePresenceForRankRewards: true,
-                AnnounceRewardMessages: true
+                AnnounceRewardMessages: true,
+
+                Presence: { Enabled: true, RP: 1 },
+
+                PartyRankRewards: { Enabled: true, FirstPlaceRP: 5, SecondPlaceRP: 3 },
+                SoloRankRewards: { Enabled: true, FirstPlaceRP: 5, SecondPlaceRP: 3 },
+
+                Bonuses: {
+                    KillStep: { Enabled: false, EveryKills: 10, RPPerStep: 1, MaxRP: 0 }
+                }
             },
 
             Shop: {
@@ -379,9 +411,10 @@
                 Items: {
                     "consumable_x5": { Enabled: true, CostRP: 3 },
                     "pocket_3": { Enabled: true, CostRP: 3 },
-                    "armor_q3_random": { Enabled: true, CostRP: 3 },
+
 
                     // locked programmatic
+                    "armor_q3_random": { Enabled: true, CostRP: 3 },
                     "reroll_item": { Enabled: true, CostRP: 15 },
                     "clone_item": { Enabled: true, CostRP: 40 },
                     "skill_token": { Enabled: true, CostRP: 10, LimitPer10Levels: true }
@@ -390,7 +423,7 @@
         };
 
         // Locked keys: cannot be removed or renamed
-        const LOCKED_KEYS = new Set(["reroll_item", "clone_item", "skill_token"]);
+        const LOCKED_KEYS = new Set(["reroll_item", "clone_item", "skill_token", "armor_q3_random"]);
 
         // UI-only descriptions
         const SHOP_DESCRIPTIONS = {
@@ -437,13 +470,19 @@
 
             // BloodMoonRewards
             BM_Enabled: document.getElementById("BM_Enabled"),
-            BM_PresenceRewardRP: document.getElementById("BM_PresenceRewardRP"),
+            BM_PresenceRP: document.getElementById("BM_PresenceRP"),
             BM_RequirePresenceForRankRewards: document.getElementById("BM_RequirePresenceForRankRewards"),
             BM_AnnounceRewardMessages: document.getElementById("BM_AnnounceRewardMessages"),
+
             BM_PartyFirst: document.getElementById("BM_PartyFirst"),
             BM_PartySecond: document.getElementById("BM_PartySecond"),
             BM_SoloFirst: document.getElementById("BM_SoloFirst"),
             BM_SoloSecond: document.getElementById("BM_SoloSecond"),
+
+            BM_KillStep_Enabled: document.getElementById("BM_KillStep_Enabled"),
+            BM_KillStep_EveryKills: document.getElementById("BM_KillStep_EveryKills"),
+            BM_KillStep_RPPerStep: document.getElementById("BM_KillStep_RPPerStep"),
+            BM_KillStep_MaxRP: document.getElementById("BM_KillStep_MaxRP"),
 
             Shop_Enabled: document.getElementById("Shop_Enabled"),
             Shop_LogPurchases: document.getElementById("Shop_LogPurchases"),
@@ -502,15 +541,23 @@
             // RewardPoints
             if (!configObj.RewardPoints) configObj.RewardPoints = structuredClone(DEFAULT_CONFIG.RewardPoints);
             if (typeof configObj.RewardPoints.Enabled !== "boolean") configObj.RewardPoints.Enabled = true;
-            configObj.RewardPoints.MinutesPerPoint = Math.max(1, Number(configObj.RewardPoints.MinutesPerPoint || DEFAULT_CONFIG.RewardPoints.MinutesPerPoint));
-            configObj.RewardPoints.TickSeconds = Math.max(1, Number(configObj.RewardPoints.TickSeconds || DEFAULT_CONFIG.RewardPoints.TickSeconds));
-            configObj.RewardPoints.SaveIntervalSeconds = Math.max(5, Number(configObj.RewardPoints.SaveIntervalSeconds || DEFAULT_CONFIG.RewardPoints.SaveIntervalSeconds));
+            configObj.RewardPoints.MinutesPerPoint = Math.max(1, Number(configObj.RewardPoints.MinutesPerPoint ?? DEFAULT_CONFIG.RewardPoints.MinutesPerPoint));
+            configObj.RewardPoints.TickSeconds = Math.max(1, Number(configObj.RewardPoints.TickSeconds ?? DEFAULT_CONFIG.RewardPoints.TickSeconds));
+            configObj.RewardPoints.SaveIntervalSeconds = Math.max(5, Number(configObj.RewardPoints.SaveIntervalSeconds ?? DEFAULT_CONFIG.RewardPoints.SaveIntervalSeconds));
 
             // BloodMoonRewards
             if (!configObj.BloodMoonRewards) configObj.BloodMoonRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards);
             if (typeof configObj.BloodMoonRewards.Enabled !== "boolean") configObj.BloodMoonRewards.Enabled = true;
 
-            configObj.BloodMoonRewards.PresenceRewardRP = Math.max(0, Number(configObj.BloodMoonRewards.PresenceRewardRP ?? DEFAULT_CONFIG.BloodMoonRewards.PresenceRewardRP));
+            if (!configObj.BloodMoonRewards.Presence) configObj.BloodMoonRewards.Presence = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.Presence);
+            if (typeof configObj.BloodMoonRewards.Presence.Enabled !== "boolean") configObj.BloodMoonRewards.Presence.Enabled = true;
+            configObj.BloodMoonRewards.Presence.RP = Math.max(0, Number(configObj.BloodMoonRewards.Presence.RP ?? DEFAULT_CONFIG.BloodMoonRewards.Presence.RP));
+
+            if (typeof configObj.BloodMoonRewards.RequirePresenceForRankRewards !== "boolean")
+                configObj.BloodMoonRewards.RequirePresenceForRankRewards = !!DEFAULT_CONFIG.BloodMoonRewards.RequirePresenceForRankRewards;
+
+            if (typeof configObj.BloodMoonRewards.AnnounceRewardMessages !== "boolean")
+                configObj.BloodMoonRewards.AnnounceRewardMessages = !!DEFAULT_CONFIG.BloodMoonRewards.AnnounceRewardMessages;
 
             if (!configObj.BloodMoonRewards.PartyRankRewards) configObj.BloodMoonRewards.PartyRankRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.PartyRankRewards);
             if (!configObj.BloodMoonRewards.SoloRankRewards) configObj.BloodMoonRewards.SoloRankRewards = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards);
@@ -521,11 +568,20 @@
             configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.FirstPlaceRP));
             configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.max(0, Number(configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.SecondPlaceRP));
 
-            if (typeof configObj.BloodMoonRewards.RequirePresenceForRankRewards !== "boolean")
-                configObj.BloodMoonRewards.RequirePresenceForRankRewards = !!DEFAULT_CONFIG.BloodMoonRewards.RequirePresenceForRankRewards;
+            if (!configObj.BloodMoonRewards.Bonuses) configObj.BloodMoonRewards.Bonuses = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.Bonuses);
+            if (!configObj.BloodMoonRewards.Bonuses.KillStep) configObj.BloodMoonRewards.Bonuses.KillStep = structuredClone(DEFAULT_CONFIG.BloodMoonRewards.Bonuses.KillStep);
 
-            if (typeof configObj.BloodMoonRewards.AnnounceRewardMessages !== "boolean")
-                configObj.BloodMoonRewards.AnnounceRewardMessages = !!DEFAULT_CONFIG.BloodMoonRewards.AnnounceRewardMessages;
+            configObj.BloodMoonRewards.Bonuses.KillStep.EveryKills = Math.max(1, Number(configObj.BloodMoonRewards.Bonuses.KillStep.EveryKills ?? 10));
+            configObj.BloodMoonRewards.Bonuses.KillStep.RPPerStep = Math.max(0, Number(configObj.BloodMoonRewards.Bonuses.KillStep.RPPerStep ?? 1));
+            configObj.BloodMoonRewards.Bonuses.KillStep.MaxRP = Math.max(0, Number(configObj.BloodMoonRewards.Bonuses.KillStep.MaxRP ?? 0));
+
+            // Remove any old/extra bonus blocks if present in loaded files
+            if (configObj.BloodMoonRewards.Bonuses) {
+                delete configObj.BloodMoonRewards.Bonuses.PartyWinBonus;
+                delete configObj.BloodMoonRewards.Bonuses.MvpBonus;
+                delete configObj.BloodMoonRewards.Bonuses.ExtraPartyRankBonus;
+                delete configObj.BloodMoonRewards.Bonuses.ExtraSoloRankBonus;
+            }
 
             // Shop
             if (!configObj.Shop) configObj.Shop = structuredClone(DEFAULT_CONFIG.Shop);
@@ -600,7 +656,7 @@
 
             // BloodMoonRewards
             els.BM_Enabled.value = String(!!configObj.BloodMoonRewards.Enabled);
-            els.BM_PresenceRewardRP.value = Number(configObj.BloodMoonRewards.PresenceRewardRP ?? DEFAULT_CONFIG.BloodMoonRewards.PresenceRewardRP);
+            els.BM_PresenceRP.value = Number(configObj.BloodMoonRewards.Presence.RP ?? DEFAULT_CONFIG.BloodMoonRewards.Presence.RP);
             els.BM_RequirePresenceForRankRewards.value = String(!!configObj.BloodMoonRewards.RequirePresenceForRankRewards);
             els.BM_AnnounceRewardMessages.value = String(!!configObj.BloodMoonRewards.AnnounceRewardMessages);
 
@@ -609,6 +665,13 @@
 
             els.BM_SoloFirst.value = Number(configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.FirstPlaceRP);
             els.BM_SoloSecond.value = Number(configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP ?? DEFAULT_CONFIG.BloodMoonRewards.SoloRankRewards.SecondPlaceRP);
+
+            // Bonuses (KillStep only)
+            const b = configObj.BloodMoonRewards.Bonuses;
+            els.BM_KillStep_Enabled.value = String(!!b.KillStep.Enabled);
+            els.BM_KillStep_EveryKills.value = Number(b.KillStep.EveryKills ?? 10);
+            els.BM_KillStep_RPPerStep.value = Number(b.KillStep.RPPerStep ?? 1);
+            els.BM_KillStep_MaxRP.value = Number(b.KillStep.MaxRP ?? 0);
 
             els.Shop_Enabled.value = String(!!configObj.Shop.Enabled);
             els.Shop_LogPurchases.value = String(!!configObj.Shop.LogPurchases);
@@ -629,7 +692,9 @@
 
             // BloodMoonRewards
             configObj.BloodMoonRewards.Enabled = els.BM_Enabled.value === "true";
-            configObj.BloodMoonRewards.PresenceRewardRP = Math.max(0, Number(els.BM_PresenceRewardRP.value) || 0);
+            if (!configObj.BloodMoonRewards.Presence) configObj.BloodMoonRewards.Presence = {};
+            configObj.BloodMoonRewards.Presence.RP = Math.max(0, Number(els.BM_PresenceRP.value) || 0);
+
             configObj.BloodMoonRewards.RequirePresenceForRankRewards = els.BM_RequirePresenceForRankRewards.value === "true";
             configObj.BloodMoonRewards.AnnounceRewardMessages = els.BM_AnnounceRewardMessages.value === "true";
 
@@ -641,6 +706,21 @@
 
             configObj.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.max(0, Number(els.BM_SoloFirst.value) || 0);
             configObj.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.max(0, Number(els.BM_SoloSecond.value) || 0);
+
+            // Bonuses (KillStep only)
+            if (!configObj.BloodMoonRewards.Bonuses) configObj.BloodMoonRewards.Bonuses = {};
+            if (!configObj.BloodMoonRewards.Bonuses.KillStep) configObj.BloodMoonRewards.Bonuses.KillStep = {};
+
+            configObj.BloodMoonRewards.Bonuses.KillStep.Enabled = els.BM_KillStep_Enabled.value === "true";
+            configObj.BloodMoonRewards.Bonuses.KillStep.EveryKills = Math.max(1, Number(els.BM_KillStep_EveryKills.value) || 10);
+            configObj.BloodMoonRewards.Bonuses.KillStep.RPPerStep = Math.max(0, Number(els.BM_KillStep_RPPerStep.value) || 0);
+            configObj.BloodMoonRewards.Bonuses.KillStep.MaxRP = Math.max(0, Number(els.BM_KillStep_MaxRP.value) || 0);
+
+            // Purge removed sections if they exist
+            delete configObj.BloodMoonRewards.Bonuses.PartyWinBonus;
+            delete configObj.BloodMoonRewards.Bonuses.MvpBonus;
+            delete configObj.BloodMoonRewards.Bonuses.ExtraPartyRankBonus;
+            delete configObj.BloodMoonRewards.Bonuses.ExtraSoloRankBonus;
 
             configObj.Shop.Enabled = els.Shop_Enabled.value === "true";
             configObj.Shop.LogPurchases = els.Shop_LogPurchases.value === "true";
@@ -656,7 +736,6 @@
                 configObj.Shop.Items[key].CostRP = Math.max(0, Number(costInput.value) || 0);
             }
 
-            // ensure locked entries + sections still exist
             ensureShape();
         }
 
@@ -713,7 +792,7 @@
                 if (removeBtn) {
                     removeBtn.addEventListener("click", () => {
                         delete configObj.Shop.Items[key];
-                        ensureShape(); // re-add locked if needed
+                        ensureShape();
                         renderShopTable();
                     });
                 }
@@ -731,7 +810,6 @@
                 return setAddShopItemStatus("That key is locked/programmatic. Edit it in the table instead.", false);
             }
 
-            // optional validation against ItemIndex if loaded
             if (itemIndexLoaded) {
                 const exists = itemKeys.includes(key);
                 if (!exists) {

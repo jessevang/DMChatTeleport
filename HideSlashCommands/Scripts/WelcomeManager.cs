@@ -40,7 +40,7 @@ namespace DMChatTeleport
             var cfg = ConfigManager.Config;
             if (cfg != null && cfg.TurnOnStarterKits && !pd.HasPickedStarterKit)
             {
-                SendPrivate(entityId, "Don’t forget: /liststarterkits and /pick <starterkitname> to get starting items.");
+                SendPrivate(entityId, "Don’t forget: /liststarterkits and /pick <starterkitname> to get starting items. Choose /pick random get starterkit items and tier 1 quest tickets x2");
             }
         }
 

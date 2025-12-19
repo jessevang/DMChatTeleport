@@ -50,6 +50,8 @@ namespace DMChatTeleport
                 return;
             }
 
+
+
             // --------------------------------------------------------------------
             // TELEPORT COMMANDS DISABLED?
             // --------------------------------------------------------------------
@@ -70,6 +72,11 @@ namespace DMChatTeleport
 
                 return;
             }
+
+            // Shop & RP commands
+            if (CommandHandlerShop.TryHandle(playerId, entityId, cmd))
+                return;
+
 
             // ====================================================================
             // TELEPORT: SETBASE
