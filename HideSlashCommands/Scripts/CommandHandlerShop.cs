@@ -291,7 +291,8 @@ namespace DMChatTeleport
             SayPlayer(entityId, $"Purchased: {key} x{amount} (-{totalCost} RP). Wallet: {newBalance} RP");
             PlayerStorage.Save();
         }
-
+        
+  
         private static List<(string key, int cost)> BuildEnabledShopList(ModConfig cfg)
         {
             var result = new List<(string key, int cost)>();
@@ -373,11 +374,39 @@ namespace DMChatTeleport
 
         private static bool HandleSkillToken(int entityId, int amount)
         {
-            // Implement however you want (perk points / skill points).
-            // Placeholder:
-            SayPlayer(entityId, $"skill_token not implemented yet (requested x{amount}).");
-            return false;
+            if (entityId <= 0 || amount <= 0)
+                return false;
+
+            try
+            {
+                var world = GameManager.Instance?.World;
+                var ep = world?.GetEntity(entityId) as EntityPlayer;
+                if (ep == null)
+                {
+                    SayPlayer(entityId, "Could not find your player entity.");
+                    return false;
+                }
+
+                if (ep.Progression == null)
+                {
+                    SayPlayer(entityId, "Your progression data is not available right now.");
+                    return false;
+                }
+
+                // This matches RewardSkillPoints.GiveReward exactly.
+                ep.Progression.SkillPoints += amount;
+
+                SayPlayer(entityId, $"Granted {amount} skill point(s).");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[DMChatTeleport] HandleSkillToken failed: {ex}");
+                SayPlayer(entityId, "Failed to grant skill points (exception).");
+                return false;
+            }
         }
+
 
         private static bool HandleCloneItem(int entityId, int amount)
         {
@@ -425,5 +454,7 @@ namespace DMChatTeleport
 
             SdtdConsole.Instance.ExecuteSync($"sayplayer {entityId} \"{msg}\"", null);
         }
+
+
     }
 }
