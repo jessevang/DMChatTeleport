@@ -3,77 +3,108 @@
   "TurnOnStarterKits": true,
   "TurnOnHideCommandsWithSlashes": true,
   "TeleportCooldownSeconds": 0,
-
   "RewardPoints": {
     "Enabled": true,
     "MinutesPerPoint": 30,
     "TickSeconds": 10,
     "SaveIntervalSeconds": 60
   },
-
   "BloodMoonRewards": {
     "Enabled": true,
-
     "RequirePresenceForRankRewards": true,
     "AnnounceRewardMessages": true,
-
     "Presence": {
       "Enabled": true,
-      "RP": 1
+      "RP": 3
     },
-
     "PartyRankRewards": {
       "Enabled": true,
-      "FirstPlaceRP": 5,
-      "SecondPlaceRP": 3
+      "FirstPlaceRP": 20,
+      "SecondPlaceRP": 10
     },
-
     "SoloRankRewards": {
       "Enabled": true,
-      "FirstPlaceRP": 5,
-      "SecondPlaceRP": 3
+      "FirstPlaceRP": 15,
+      "SecondPlaceRP": 7
     },
-
     "Bonuses": {
       "KillStep": {
-        "Enabled": false,
-        "EveryKills": 10,
+        "Enabled": true,
+        "EveryKills": 30,
         "RPPerStep": 1,
         "MaxRP": 0
       }
-
     }
   },
-
-
   "Shop": {
     "Enabled": true,
     "LogPurchases": true,
     "Items": {
-      "consumable_x5": {
+      "ammo762mmBulletBall": {
         "Enabled": true,
-        "CostRP": 3
+        "CostRP": 1,
+        "Qty": 50
       },
-      "modArmorTripleStoragePocket": {
+      "ammo9mmBulletBall": {
         "Enabled": true,
-        "CostRP": 3
+        "CostRP": 1,
+        "Qty": 60
+      },
+      "ammoShotgunShell": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 50
+      },
+      "ammo44MagnumBulletAP": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 60
       },
       "armor_q3_random": {
         "Enabled": true,
-        "CostRP": 3
+        "CostRP": 1,
+        "Qty": 1
       },
-      "reroll_item": {
+    
+      "giveXP_T2_admin": {
         "Enabled": true,
-        "CostRP": 15
+        "CostRP": 20,
+        "Qty": 1
       },
-      "clone_item": {
+      "drugAtomJunkies": {
         "Enabled": true,
-        "CostRP": 40
+        "CostRP": 1,
+        "Qty": 2
       },
-      "skill_token": {
+      "drugSkullCrushers": {
         "Enabled": true,
-        "CostRP": 10,
-        "LimitPer10Levels": true
+        "CostRP": 1,
+        "Qty": 2
+      },
+      "drugRecog": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 2
+      },
+      "drugRockBusters": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 2
+      },
+      "drugEyeKandy": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 2
+      },
+      "drinkCanMegaCrush": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 2
+      },
+      "drinkJarGrandpasLearningElixir": {
+        "Enabled": true,
+        "CostRP": 1,
+        "Qty": 2
       }
     }
   }

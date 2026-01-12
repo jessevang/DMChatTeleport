@@ -6,9 +6,6 @@ using UnityEngine;
 
 namespace DMChatTeleport
 {
-    // -----------------------------
-    // Config Models
-    // -----------------------------
     public class ModConfig
     {
         public bool TurnOnTeleportCommands = true;
@@ -29,78 +26,51 @@ namespace DMChatTeleport
         public int SaveIntervalSeconds = 60;
     }
 
-    // -----------------------------
-    // Blood Moon Rewards
-    // -----------------------------
     public class BloodMoonRewardsConfig
     {
         public bool Enabled = true;
-
-        // If true, require that a player is present to receive rank rewards
         public bool RequirePresenceForRankRewards = true;
-
-        // If true, send private messages (sayplayer) about rewards earned
         public bool AnnounceRewardMessages = true;
 
-        // Presence reward (per player present during blood moon)
         public PresenceRewardConfig Presence = new PresenceRewardConfig();
-
-        // Party ranking rewards (1st/2nd party)
         public PartyRankRewardsConfig PartyRankRewards = new PartyRankRewardsConfig();
-
-        // Individual ranking rewards (Top Kills 1st/2nd)
         public SoloRankRewardsConfig SoloRankRewards = new SoloRankRewardsConfig();
-
-        // configurable bonus system (ONLY KillStep now)
         public BloodMoonBonusConfig Bonuses = new BloodMoonBonusConfig();
     }
 
     public class PresenceRewardConfig
     {
         public bool Enabled = true;
-        public int RP = 1;
+        public int RP = 3;
     }
 
     public class PartyRankRewardsConfig
     {
         public bool Enabled = true;
-        public int FirstPlaceRP = 5;
-        public int SecondPlaceRP = 3;
+        public int FirstPlaceRP = 15;
+        public int SecondPlaceRP = 10;
     }
 
     public class SoloRankRewardsConfig
     {
         public bool Enabled = true;
-        public int FirstPlaceRP = 5;
-        public int SecondPlaceRP = 3;
+        public int FirstPlaceRP = 15;
+        public int SecondPlaceRP = 10;
     }
 
-    // -----------------------------
-    // Blood Moon Bonus Configs
-    // -----------------------------
     public class BloodMoonBonusConfig
     {
-        // Give RP based on kills: every N kills gives X RP (per player)
         public KillStepBonusConfig KillStep = new KillStepBonusConfig();
     }
 
     public class KillStepBonusConfig
     {
-        public bool Enabled = false;
-
-        // Every N kills...
+        public bool Enabled = true;
         public int EveryKills = 10;
-
-        // ...gives this many RP
         public int RPPerStep = 1;
-
-        // Optional cap per blood moon (0 = no cap)
         public int MaxRP = 0;
     }
 
-    // -----------------------------
-    // Shop
-    // -----------------------------
     public class ShopConfig
     {
         public bool Enabled = true;
@@ -115,12 +85,12 @@ namespace DMChatTeleport
         public bool Enabled = true;
         public int CostRP = 0;
 
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int Qty = 1;
+
         public bool LimitPer10Levels = false;
     }
 
-    // -----------------------------
-    // Config Manager
-    // -----------------------------
     public static class ConfigManager
     {
         private static readonly object _lock = new object();
@@ -162,8 +132,6 @@ namespace DMChatTeleport
                     Config = JsonConvert.DeserializeObject<ModConfig>(json) ?? BuildDefaultConfig();
 
                     ApplyDefaultsInPlace(Config);
-
-                    // Always write back to ensure new fields exist in config.json
                     Save();
                 }
                 catch (Exception ex)
@@ -204,69 +172,88 @@ namespace DMChatTeleport
             }
         }
 
-        // -----------------------------
-        // Defaults + Repair
-        // -----------------------------
         private static ModConfig BuildDefaultConfig()
         {
-            var cfg = new ModConfig();
-
-            cfg.RewardPoints = new RewardPointsConfig
+            var cfg = new ModConfig
             {
-                Enabled = true,
-                MinutesPerPoint = 30,
-                TickSeconds = 10,
-                SaveIntervalSeconds = 60
-            };
+                TurnOnTeleportCommands = true,
+                TurnOnStarterKits = true,
+                TurnOnHideCommandsWithSlashes = true,
+                TeleportCooldownSeconds = 0,
 
-            cfg.BloodMoonRewards = new BloodMoonRewardsConfig
-            {
-                Enabled = true,
-                RequirePresenceForRankRewards = true,
-                AnnounceRewardMessages = true,
-
-                Presence = new PresenceRewardConfig { Enabled = true, RP = 1 },
-
-                PartyRankRewards = new PartyRankRewardsConfig
+                RewardPoints = new RewardPointsConfig
                 {
                     Enabled = true,
-                    FirstPlaceRP = 5,
-                    SecondPlaceRP = 3
+                    MinutesPerPoint = 30,
+                    TickSeconds = 10,
+                    SaveIntervalSeconds = 60
                 },
 
-                SoloRankRewards = new SoloRankRewardsConfig
+                BloodMoonRewards = new BloodMoonRewardsConfig
                 {
                     Enabled = true,
-                    FirstPlaceRP = 5,
-                    SecondPlaceRP = 3
-                },
+                    RequirePresenceForRankRewards = true,
+                    AnnounceRewardMessages = true,
 
-                Bonuses = new BloodMoonBonusConfig
-                {
-                    KillStep = new KillStepBonusConfig
+                    Presence = new PresenceRewardConfig
                     {
-                        Enabled = false,
-                        EveryKills = 10,
-                        RPPerStep = 1,
-                        MaxRP = 0
+                        Enabled = true,
+                        RP = 3
+                    },
+
+                    PartyRankRewards = new PartyRankRewardsConfig
+                    {
+                        Enabled = true,
+                        FirstPlaceRP = 15,
+                        SecondPlaceRP = 10
+                    },
+
+                    SoloRankRewards = new SoloRankRewardsConfig
+                    {
+                        Enabled = true,
+                        FirstPlaceRP = 15,
+                        SecondPlaceRP = 10
+                    },
+
+                    Bonuses = new BloodMoonBonusConfig
+                    {
+                        KillStep = new KillStepBonusConfig
+                        {
+                            Enabled = true,
+                            EveryKills = 10,
+                            RPPerStep = 1,
+                            MaxRP = 0
+                        }
                     }
+                },
+
+                Shop = new ShopConfig
+                {
+                    Enabled = true,
+                    LogPurchases = true,
+                    Items = new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase)
                 }
             };
 
-            cfg.Shop = new ShopConfig
-            {
-                Enabled = true,
-                LogPurchases = true,
-                Items = new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase)
-            };
+            cfg.Shop.Items["ammo762mmBulletBall"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 100 };
+            cfg.Shop.Items["ammo9mmBulletBall"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 100 };
+            cfg.Shop.Items["ammoShotgunShell"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 100 };
+            cfg.Shop.Items["ammo44MagnumBulletAP"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 100 };
 
-            cfg.Shop.Items["consumable_x5"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
-            cfg.Shop.Items["modArmorTripleStoragePocket"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
+            cfg.Shop.Items["armor_q3_random"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 1 };
 
-            cfg.Shop.Items["armor_q3_random"] = new ShopItemConfig { Enabled = true, CostRP = 3 };
-            cfg.Shop.Items["reroll_item"] = new ShopItemConfig { Enabled = true, CostRP = 15 };
-            cfg.Shop.Items["clone_item"] = new ShopItemConfig { Enabled = true, CostRP = 40 };
-            cfg.Shop.Items["skill_token"] = new ShopItemConfig { Enabled = true, CostRP = 10, LimitPer10Levels = true };
+            cfg.Shop.Items["skill_token"] = new ShopItemConfig { Enabled = true, CostRP = 3, Qty = 1, LimitPer10Levels = true };
+
+            cfg.Shop.Items["giveXP_T2_admin"] = new ShopItemConfig { Enabled = true, CostRP = 20, Qty = 1 };
+
+            cfg.Shop.Items["drugAtomJunkies"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+            cfg.Shop.Items["drugSkullCrushers"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+            cfg.Shop.Items["drugRecog"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+            cfg.Shop.Items["drugRockBusters"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+            cfg.Shop.Items["drugEyeKandy"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+
+            cfg.Shop.Items["drinkCanMegaCrush"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
+            cfg.Shop.Items["drinkJarGrandpasLearningElixir"] = new ShopItemConfig { Enabled = true, CostRP = 1, Qty = 3 };
 
             return cfg;
         }
@@ -276,9 +263,6 @@ namespace DMChatTeleport
             if (cfg == null)
                 return;
 
-            // -----------------------------
-            // Reward Points
-            // -----------------------------
             if (cfg.RewardPoints == null)
                 cfg.RewardPoints = new RewardPointsConfig();
 
@@ -286,15 +270,11 @@ namespace DMChatTeleport
             cfg.RewardPoints.TickSeconds = Math.Max(1, cfg.RewardPoints.TickSeconds);
             cfg.RewardPoints.SaveIntervalSeconds = Math.Max(5, cfg.RewardPoints.SaveIntervalSeconds);
 
-            // -----------------------------
-            // Blood Moon Rewards
-            // -----------------------------
             if (cfg.BloodMoonRewards == null)
                 cfg.BloodMoonRewards = new BloodMoonRewardsConfig();
 
             if (cfg.BloodMoonRewards.Presence == null)
                 cfg.BloodMoonRewards.Presence = new PresenceRewardConfig();
-
             cfg.BloodMoonRewards.Presence.RP = Math.Max(0, cfg.BloodMoonRewards.Presence.RP);
 
             if (cfg.BloodMoonRewards.PartyRankRewards == null)
@@ -309,7 +289,6 @@ namespace DMChatTeleport
             cfg.BloodMoonRewards.SoloRankRewards.FirstPlaceRP = Math.Max(0, cfg.BloodMoonRewards.SoloRankRewards.FirstPlaceRP);
             cfg.BloodMoonRewards.SoloRankRewards.SecondPlaceRP = Math.Max(0, cfg.BloodMoonRewards.SoloRankRewards.SecondPlaceRP);
 
-            // Ensure bonuses exist + clamp
             if (cfg.BloodMoonRewards.Bonuses == null)
                 cfg.BloodMoonRewards.Bonuses = new BloodMoonBonusConfig();
 
@@ -320,35 +299,52 @@ namespace DMChatTeleport
             cfg.BloodMoonRewards.Bonuses.KillStep.RPPerStep = Math.Max(0, cfg.BloodMoonRewards.Bonuses.KillStep.RPPerStep);
             cfg.BloodMoonRewards.Bonuses.KillStep.MaxRP = Math.Max(0, cfg.BloodMoonRewards.Bonuses.KillStep.MaxRP);
 
-            // -----------------------------
-            // Shop
-            // -----------------------------
             if (cfg.Shop == null)
                 cfg.Shop = new ShopConfig();
 
             if (cfg.Shop.Items == null)
                 cfg.Shop.Items = new Dictionary<string, ShopItemConfig>(StringComparer.OrdinalIgnoreCase);
 
-            // Ensure baseline keys exist (you can delete these if you want zero "forced defaults")
-            EnsureShopItem(cfg, "reroll_item", 15, limitPer10Levels: false);
-            EnsureShopItem(cfg, "clone_item", 40, limitPer10Levels: false);
-            EnsureShopItem(cfg, "skill_token", 10, limitPer10Levels: true);
-
-            EnsureShopItem(cfg, "consumable_x5", 3, limitPer10Levels: false);
-            EnsureShopItem(cfg, "pocket_3", 3, limitPer10Levels: false);
-            EnsureShopItem(cfg, "armor_q3_random", 3, limitPer10Levels: false);
-
-            foreach (var kv in cfg.Shop.Items)
+            foreach (var kv in new List<KeyValuePair<string, ShopItemConfig>>(cfg.Shop.Items))
             {
+                if (string.IsNullOrWhiteSpace(kv.Key))
+                {
+                    cfg.Shop.Items.Remove(kv.Key);
+                    continue;
+                }
+
                 if (kv.Value == null)
                     cfg.Shop.Items[kv.Key] = new ShopItemConfig();
 
-                if (cfg.Shop.Items[kv.Key].CostRP < 0)
-                    cfg.Shop.Items[kv.Key].CostRP = 0;
+                var item = cfg.Shop.Items[kv.Key];
+
+                if (item.CostRP < 0) item.CostRP = 0;
+                if (item.Qty <= 0) item.Qty = 1;
+
+                if (kv.Key.Equals("skill_token", StringComparison.OrdinalIgnoreCase) && item.LimitPer10Levels == false)
+                    item.LimitPer10Levels = true;
             }
+
+            EnsureShopItem(cfg, "ammo762mmBulletBall", 1, 100, false);
+            EnsureShopItem(cfg, "ammo9mmBulletBall", 1, 100, false);
+            EnsureShopItem(cfg, "ammoShotgunShell", 1, 100, false);
+            EnsureShopItem(cfg, "ammo44MagnumBulletAP", 1, 100, false);
+
+            EnsureShopItem(cfg, "armor_q3_random", 1, 1, false);
+
+            EnsureShopItem(cfg, "giveXP_T2_admin", 10, 1, false);
+
+            EnsureShopItem(cfg, "drugAtomJunkies", 1, 3, false);
+            EnsureShopItem(cfg, "drugSkullCrushers", 1, 3, false);
+            EnsureShopItem(cfg, "drugRecog", 1, 3, false);
+            EnsureShopItem(cfg, "drugRockBusters", 1, 3, false);
+            EnsureShopItem(cfg, "drugEyeKandy", 1, 3, false);
+
+            EnsureShopItem(cfg, "drinkCanMegaCrush", 1, 3, false);
+            EnsureShopItem(cfg, "drinkJarGrandpasLearningElixir", 1, 3, false);
         }
 
-        private static void EnsureShopItem(ModConfig cfg, string key, int defaultCost, bool limitPer10Levels)
+        private static void EnsureShopItem(ModConfig cfg, string key, int defaultCost, int defaultQty, bool limitPer10Levels)
         {
             if (!cfg.Shop.Items.TryGetValue(key, out var item) || item == null)
             {
@@ -356,6 +352,7 @@ namespace DMChatTeleport
                 {
                     Enabled = true,
                     CostRP = Math.Max(0, defaultCost),
+                    Qty = Math.Max(1, defaultQty),
                     LimitPer10Levels = limitPer10Levels
                 };
                 return;
@@ -363,6 +360,9 @@ namespace DMChatTeleport
 
             if (item.CostRP < 0)
                 item.CostRP = 0;
+
+            if (item.Qty <= 0)
+                item.Qty = 1;
 
             if (key.Equals("skill_token", StringComparison.OrdinalIgnoreCase))
                 item.LimitPer10Levels = limitPer10Levels;

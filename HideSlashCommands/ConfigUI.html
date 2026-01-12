@@ -122,6 +122,23 @@
             gap: 8px;
             margin-top: 8px;
         }
+
+        /* Drag/drop styles */
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            font-size: 16px;
+            padding: 2px 6px;
+            text-align: center;
+        }
+
+        tr.dragging {
+            opacity: 0.4;
+        }
+
+        tr.drop-target {
+            outline: 2px dashed #888;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +148,9 @@
         <div>
             Load <code>config.json</code>, optionally load <code>ItemIndex.json</code> for item search,
             edit settings, then <b>Save</b> to download a new <code>config.json</code>.
+        </div>
+        <div class="small">
+            Update: Shop items now support <b>Qty</b> (quantity per purchase) in addition to CostRP.
         </div>
     </div>
 
@@ -341,6 +361,9 @@
             <label style="min-width:70px;">CostRP</label>
             <input id="addItemCost" type="number" min="0" step="1" value="3" />
 
+            <label style="min-width:50px;">Qty</label>
+            <input id="addItemQty" type="number" min="1" step="1" value="1" />
+
             <button id="addShopItemBtn" type="button">Add</button>
             <span id="addShopItemStatus" class="small"></span>
         </div>
@@ -353,9 +376,11 @@
         <table class="shop-table" id="shopTable">
             <thead>
                 <tr>
+                    <th style="width:40px;"></th>
                     <th style="width:260px;">Item Key</th>
                     <th style="width:120px;">Enabled</th>
                     <th style="width:140px;">CostRP</th>
+                    <th style="width:110px;">Qty</th>
                     <th>Description</th>
                     <th style="width:120px;">Action</th>
                 </tr>
@@ -409,30 +434,23 @@
                 Enabled: true,
                 LogPurchases: true,
                 Items: {
-                    "consumable_x5": { Enabled: true, CostRP: 3 },
-                    "pocket_3": { Enabled: true, CostRP: 3 },
 
 
                     // locked programmatic
-                    "armor_q3_random": { Enabled: true, CostRP: 3 },
-                    "reroll_item": { Enabled: true, CostRP: 15 },
-                    "clone_item": { Enabled: true, CostRP: 40 },
-                    "skill_token": { Enabled: true, CostRP: 10, LimitPer10Levels: true }
+                    "armor_q3_random": { Enabled: true, CostRP: 3, Qty: 1 },
+                  
                 }
             }
         };
 
         // Locked keys: cannot be removed or renamed
-        const LOCKED_KEYS = new Set(["reroll_item", "clone_item", "skill_token", "armor_q3_random"]);
+        const LOCKED_KEYS = new Set(["armor_q3_random"]);
 
         // UI-only descriptions
         const SHOP_DESCRIPTIONS = {
-            "consumable_x5": "Extended vanilla consumable (x5 duration). You’ll map exact spawned item later.",
-            "pocket_3": "3-pocket armor mod (spawn item later).",
+        
             "armor_q3_random": "Random armor quality 3 (program chooses).",
-            "reroll_item": "Programmatic reroll: only if item has no mods; removes item then spawns re-rolled one.",
-            "clone_item": "Programmatic clone: duplicates held weapon or equipped armor with same stat rolls.",
-            "skill_token": "Programmatic: grants 1 perk point. Optional limit: 1 per 10 levels."
+ 
         };
 
         // ---------- State ----------
@@ -442,6 +460,10 @@
         // ItemIndex state
         let itemIndexLoaded = false;
         let itemKeys = []; // string list
+
+        // UI-only shop order (drag/drop controls this).
+        // We do NOT store this in config.json. We rebuild Shop.Items in this order when saving.
+        let shopOrder = [];
 
         // ---------- Elements ----------
         const els = {
@@ -490,6 +512,7 @@
             addItemKey: document.getElementById("addItemKey"),
             addItemEnabled: document.getElementById("addItemEnabled"),
             addItemCost: document.getElementById("addItemCost"),
+            addItemQty: document.getElementById("addItemQty"),
             addShopItemBtn: document.getElementById("addShopItemBtn"),
             addShopItemStatus: document.getElementById("addShopItemStatus"),
             itemKeysDatalist: document.getElementById("itemKeysDatalist"),
@@ -589,16 +612,44 @@
             if (typeof configObj.Shop.LogPurchases !== "boolean") configObj.Shop.LogPurchases = true;
             if (!configObj.Shop.Items || typeof configObj.Shop.Items !== "object") configObj.Shop.Items = {};
 
-            // Always ensure locked items exist
+            // Ensure each shop item has Qty
+            for (const k of Object.keys(configObj.Shop.Items)) {
+                const it = configObj.Shop.Items[k];
+                if (!it || typeof it !== "object") configObj.Shop.Items[k] = { Enabled: true, CostRP: 0, Qty: 1 };
+                if (typeof configObj.Shop.Items[k].Enabled !== "boolean") configObj.Shop.Items[k].Enabled = true;
+                if (!Number.isFinite(Number(configObj.Shop.Items[k].CostRP))) configObj.Shop.Items[k].CostRP = 0;
+                configObj.Shop.Items[k].Qty = Math.max(1, Number(configObj.Shop.Items[k].Qty ?? 1) || 1);
+            }
+
+            // Always ensure locked items exist + have Qty
             for (const k of LOCKED_KEYS) {
                 if (!configObj.Shop.Items[k]) configObj.Shop.Items[k] = structuredClone(DEFAULT_CONFIG.Shop.Items[k]);
                 if (typeof configObj.Shop.Items[k].Enabled !== "boolean") configObj.Shop.Items[k].Enabled = true;
                 if (!Number.isFinite(Number(configObj.Shop.Items[k].CostRP))) configObj.Shop.Items[k].CostRP = Number(DEFAULT_CONFIG.Shop.Items[k].CostRP || 0);
+                configObj.Shop.Items[k].Qty = Math.max(1, Number(configObj.Shop.Items[k].Qty ?? 1) || 1);
                 if (k === "skill_token") {
                     if (typeof configObj.Shop.Items[k].LimitPer10Levels !== "boolean") {
                         configObj.Shop.Items[k].LimitPer10Levels = !!DEFAULT_CONFIG.Shop.Items[k].LimitPer10Levels;
                     }
                 }
+            }
+
+            // UI-only order: initialize from current insertion order if empty
+            if (!Array.isArray(shopOrder) || shopOrder.length === 0) {
+                shopOrder = Object.keys(configObj.Shop.Items || {});
+            }
+
+            // Ensure shopOrder contains all current keys (append missing)
+            for (const k of Object.keys(configObj.Shop.Items || {})) {
+                if (!shopOrder.includes(k)) shopOrder.push(k);
+            }
+
+            // Remove deleted keys
+            shopOrder = shopOrder.filter(k => configObj.Shop.Items && configObj.Shop.Items[k]);
+
+            // Ensure locked keys exist in order (append if missing)
+            for (const k of LOCKED_KEYS) {
+                if (!shopOrder.includes(k)) shopOrder.push(k);
             }
         }
 
@@ -725,23 +776,93 @@
             configObj.Shop.Enabled = els.Shop_Enabled.value === "true";
             configObj.Shop.LogPurchases = els.Shop_LogPurchases.value === "true";
 
+            // Read values from table rows
             const rows = els.shopTableBody.querySelectorAll("tr[data-key]");
             for (const tr of rows) {
                 const key = tr.getAttribute("data-key");
                 const enabledSel = tr.querySelector("select[data-field='Enabled']");
                 const costInput = tr.querySelector("input[data-field='CostRP']");
-                if (!configObj.Shop.Items[key]) configObj.Shop.Items[key] = { Enabled: true, CostRP: 0 };
+                const qtyInput = tr.querySelector("input[data-field='Qty']");
+
+                if (!configObj.Shop.Items[key]) configObj.Shop.Items[key] = { Enabled: true, CostRP: 0, Qty: 1 };
 
                 configObj.Shop.Items[key].Enabled = enabledSel.value === "true";
                 configObj.Shop.Items[key].CostRP = Math.max(0, Number(costInput.value) || 0);
+                configObj.Shop.Items[key].Qty = Math.max(1, Number(qtyInput.value) || 1);
             }
+
+            // Rebuild Shop.Items in EXACT drag/drop order so JSON saves in that order
+            const newItems = {};
+            for (const key of shopOrder) {
+                if (configObj.Shop.Items[key]) newItems[key] = configObj.Shop.Items[key];
+            }
+            // Safety: include any keys missing from shopOrder (shouldn't happen)
+            for (const key of Object.keys(configObj.Shop.Items)) {
+                if (!newItems[key]) newItems[key] = configObj.Shop.Items[key];
+            }
+            configObj.Shop.Items = newItems;
 
             ensureShape();
         }
 
+        // ---------- Drag/drop (reorders shopOrder only; config order is rebuilt on save) ----------
+        let dragKey = null;
+
+        function attachDragHandlers() {
+            const rows = [...els.shopTableBody.querySelectorAll("tr[data-key]")];
+
+            for (const tr of rows) {
+                const key = tr.getAttribute("data-key");
+                tr.draggable = true;
+
+                tr.addEventListener("dragstart", (ev) => {
+                    dragKey = key;
+                    tr.classList.add("dragging");
+                    ev.dataTransfer.effectAllowed = "move";
+                    ev.dataTransfer.setData("text/plain", key);
+                });
+
+                tr.addEventListener("dragend", () => {
+                    dragKey = null;
+                    tr.classList.remove("dragging");
+                    rows.forEach(r => r.classList.remove("drop-target"));
+                });
+
+                tr.addEventListener("dragover", (ev) => {
+                    ev.preventDefault();
+                    ev.dataTransfer.dropEffect = "move";
+                    tr.classList.add("drop-target");
+                });
+
+                tr.addEventListener("dragleave", () => tr.classList.remove("drop-target"));
+
+                tr.addEventListener("drop", (ev) => {
+                    ev.preventDefault();
+                    tr.classList.remove("drop-target");
+
+                    const fromKey = ev.dataTransfer.getData("text/plain") || dragKey;
+                    const toKey = key;
+                    if (!fromKey || !toKey || fromKey === toKey) return;
+
+                    const fromIdx = shopOrder.indexOf(fromKey);
+                    const toIdx = shopOrder.indexOf(toKey);
+                    if (fromIdx === -1 || toIdx === -1) return;
+
+                    shopOrder.splice(fromIdx, 1);
+                    shopOrder.splice(toIdx, 0, fromKey);
+
+                    renderShopTable();
+                });
+            }
+        }
+
         function renderShopTable() {
             const items = configObj.Shop.Items || {};
-            const keys = Object.keys(items).sort((a, b) => a.localeCompare(b));
+
+            // IMPORTANT: Do NOT sort. Display exactly in shopOrder.
+            const keys = (shopOrder && shopOrder.length)
+                ? shopOrder.filter(k => items[k])
+                : Object.keys(items);
 
             els.shopTableBody.innerHTML = "";
 
@@ -749,6 +870,7 @@
                 const cfg = items[key] || {};
                 const enabled = cfg.Enabled !== false;
                 const cost = Number.isFinite(Number(cfg.CostRP)) ? Number(cfg.CostRP) : 0;
+                const qty = Math.max(1, Number(cfg.Qty ?? 1) || 1);
                 const locked = LOCKED_KEYS.has(key);
 
                 const desc = SHOP_DESCRIPTIONS[key] || "Custom shop item (spawned item key).";
@@ -758,31 +880,37 @@
                 if (locked) tr.classList.add("danger");
 
                 tr.innerHTML = `
-              <td>
-                <code>${escapeHtml(key)}</code>
-                ${locked ? `<div class="locked">Locked programmatic item (cannot remove/rename)</div>` : ``}
-                ${key === "skill_token" && cfg.LimitPer10Levels ? `<div class="pill">LimitPer10Levels</div>` : ``}
-              </td>
-              <td>
-                <select data-field="Enabled">
-                  <option value="true">true</option>
-                  <option value="false">false</option>
-                </select>
-              </td>
-              <td>
-                <input type="number" min="0" step="1" data-field="CostRP" />
-              </td>
-              <td>${escapeHtml(desc)}</td>
-              <td>
-                ${locked ? `<span class="locked">Locked</span>` : `<button type="button" data-action="remove">Remove</button>`}
-              </td>
-            `;
+                      <td class="drag-handle" title="Drag to reorder">☰</td>
+                      <td>
+                        <code>${escapeHtml(key)}</code>
+                        ${locked ? `<div class="locked">Locked programmatic item (cannot remove/rename)</div>` : ``}
+                        ${key === "skill_token" && cfg.LimitPer10Levels ? `<div class="pill">LimitPer10Levels</div>` : ``}
+                      </td>
+                      <td>
+                        <select data-field="Enabled">
+                          <option value="true">true</option>
+                          <option value="false">false</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="number" min="0" step="1" data-field="CostRP" />
+                      </td>
+                      <td>
+                        <input type="number" min="1" step="1" data-field="Qty" />
+                      </td>
+                      <td>${escapeHtml(desc)}</td>
+                      <td>
+                        ${locked ? `<span class="locked">Locked</span>` : `<button type="button" data-action="remove">Remove</button>`}
+                      </td>
+                    `;
 
                 const enabledSel = tr.querySelector("select[data-field='Enabled']");
                 const costInput = tr.querySelector("input[data-field='CostRP']");
+                const qtyInput = tr.querySelector("input[data-field='Qty']");
 
                 enabledSel.value = String(enabled);
                 costInput.value = String(cost);
+                qtyInput.value = String(qty);
 
                 enabledSel.addEventListener("change", () => {
                     tr.classList.toggle("disabled-row", enabledSel.value !== "true");
@@ -792,6 +920,7 @@
                 if (removeBtn) {
                     removeBtn.addEventListener("click", () => {
                         delete configObj.Shop.Items[key];
+                        shopOrder = shopOrder.filter(k => k !== key);
                         ensureShape();
                         renderShopTable();
                     });
@@ -799,6 +928,8 @@
 
                 els.shopTableBody.appendChild(tr);
             }
+
+            attachDragHandlers();
         }
 
         // ---------- Add item ----------
@@ -817,13 +948,19 @@
                 }
             }
 
+            const qty = Math.max(1, Number(els.addItemQty.value) || 1);
+
             if (!configObj.Shop.Items) configObj.Shop.Items = {};
             configObj.Shop.Items[key] = {
                 Enabled: els.addItemEnabled.value === "true",
-                CostRP: Math.max(0, Number(els.addItemCost.value) || 0)
+                CostRP: Math.max(0, Number(els.addItemCost.value) || 0),
+                Qty: qty
             };
 
+            if (!shopOrder.includes(key)) shopOrder.push(key);
+
             els.addItemKey.value = "";
+            els.addItemQty.value = "1";
             renderShopTable();
             setAddShopItemStatus("Added.", true);
         }
@@ -847,6 +984,10 @@
 
                 configObj = structuredClone(DEFAULT_CONFIG);
                 deepMerge(configObj, obj);
+
+                // Clear UI order so ensureShape seeds from merged object's insertion order
+                shopOrder = [];
+
                 ensureShape();
                 uiFromConfig();
 

@@ -32,15 +32,21 @@ namespace DMChatTeleport
             pd.entityId = entityId;
             if (created) PlayerDataStore.PlayerStorage.Save();
 
+            // Language preference (default en)
+            string lang = PlayerDataStore.PlayerStorage.GetLanguage(playerId, "en");
+
             string name = GetPlayerName(cInfo) ?? playerId;
             int rp = pd.RewardPoints;
 
-            SendPrivate(entityId, $"Welcome back, {name}. Your current Reward Points (RP): {rp}");
+            SendPrivate(entityId, L.Format(lang, "welcome.back",
+                ("name", name),
+                ("rp", rp)
+            ));
 
             var cfg = ConfigManager.Config;
             if (cfg != null && cfg.TurnOnStarterKits && !pd.HasPickedStarterKit)
             {
-                SendPrivate(entityId, "Don’t forget: /liststarterkits and /pick <starterkitname> to get starting items. Choose /pick random get starterkit items and tier 1 quest tickets x2");
+                SendPrivate(entityId, L.Get(lang, "welcome.kits_hint"));
             }
         }
 
@@ -55,6 +61,12 @@ namespace DMChatTeleport
 
         private static void SendPrivate(int entityId, string msg)
         {
+            if (entityId <= 0 || string.IsNullOrWhiteSpace(msg))
+                return;
+
+            // Escape quotes to avoid breaking console command
+            msg = msg.Replace("\"", "\\\"");
+
             SdtdConsole.Instance.ExecuteSync($"sayplayer {entityId} \"{msg}\"", null);
         }
 

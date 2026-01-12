@@ -127,175 +127,213 @@ namespace DMChatTeleport
             return false;
         }
 
+        private static string GetLang(string playerId)
+        {
+            // PlayerStorage.GetLanguage should internally handle null/blank playerId,
+            // but keep it defensive.
+            try { return PlayerStorage.GetLanguage(playerId, "en"); }
+            catch { return "en"; }
+        }
+
         private static void HandleWallet(string playerId, int entityId)
         {
             var cfg = ConfigManager.Config;
+            string lang = GetLang(playerId);
 
             if (cfg?.RewardPoints == null || !cfg.RewardPoints.Enabled)
             {
-                SayPlayer(entityId, "Reward Points are disabled on this server.");
+                SayPlayer(entityId, L.Get(lang, "shop.rp.disabled"));
                 return;
             }
 
             int rp = PlayerStorage.GetRP(playerId);
-            SayPlayer(entityId, $"Reward Points: {rp} RP");
+            SayPlayer(entityId, L.Format(lang, "shop.wallet.line", ("rp", rp)));
         }
 
         private static void HandleShopList(string playerId, int entityId)
         {
             var cfg = ConfigManager.Config;
+            string lang = GetLang(playerId);
 
             if (cfg?.RewardPoints == null || !cfg.RewardPoints.Enabled)
             {
-                SayPlayer(entityId, "Reward Points are disabled on this server.");
+                SayPlayer(entityId, L.Get(lang, "shop.rp.disabled"));
                 return;
             }
 
             if (cfg?.Shop == null || !cfg.Shop.Enabled)
             {
-                SayPlayer(entityId, "Shop is disabled on this server.");
+                SayPlayer(entityId, L.Get(lang, "shop.disabled"));
                 return;
             }
 
             var list = BuildEnabledShopList(cfg);
             if (list.Count == 0)
             {
-                SayPlayer(entityId, "Shop has no enabled items.");
+                SayPlayer(entityId, L.Get(lang, "shop.empty"));
                 return;
             }
 
             int rp = PlayerStorage.GetRP(playerId);
 
-            SayPlayer(entityId, $"Wallet: {rp} RP");
-            SayPlayer(entityId, "Shop Items:");
+            SayPlayer(entityId, L.Format(lang, "shop.wallet.line", ("rp", rp)));
+            SayPlayer(entityId, L.Get(lang, "shop.items.header"));
 
             for (int i = 0; i < list.Count; i++)
             {
                 var entry = list[i];
                 int idx = i + 1;
-                string special = SpecialKeys.Contains(entry.key) ? " (special)" : "";
-                SayPlayer(entityId, $"{idx}. {entry.key} - {entry.cost} RP{special}");
+
+                bool isSpecial = SpecialKeys.Contains(entry.key);
+                string specialSuffix = isSpecial ? L.Get(lang, "shop.item.special_suffix") : "";
+
+                int qty = Math.Max(1, entry.qty);
+
+                SayPlayer(entityId, L.Format(lang, "shop.item.line",
+                    ("index", idx),
+                    ("key", entry.key),
+                    ("cost", entry.cost),
+                    ("qty", qty),
+                    ("special", specialSuffix)
+                ));
             }
 
-            SayPlayer(entityId, "Use: /buy <ShopItem#> <Amount>");
+            SayPlayer(entityId, L.Get(lang, "shop.buy.usage_short"));
         }
 
         private static void HandleBuy(string playerId, int entityId, string cmd)
         {
             var cfg = ConfigManager.Config;
+            string lang = GetLang(playerId);
 
             if (cfg?.RewardPoints == null || !cfg.RewardPoints.Enabled)
             {
-                SayPlayer(entityId, "Reward Points are disabled on this server.");
+                SayPlayer(entityId, L.Get(lang, "shop.rp.disabled"));
                 return;
             }
 
             if (cfg?.Shop == null || !cfg.Shop.Enabled)
             {
-                SayPlayer(entityId, "Shop is disabled on this server.");
+                SayPlayer(entityId, L.Get(lang, "shop.disabled"));
                 return;
             }
 
             var parts = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 2)
             {
-                SayPlayer(entityId, "Usage: /buy <ShopItem#> <Amount>");
+                SayPlayer(entityId, L.Get(lang, "shop.buy.usage"));
                 return;
             }
 
             if (!int.TryParse(parts[1], out int itemNumber) || itemNumber <= 0)
             {
-                SayPlayer(entityId, "Invalid item number. Use /shop to see item numbers.");
+                SayPlayer(entityId, L.Get(lang, "shop.buy.invalid_item_number"));
                 return;
             }
 
-            int amount = 1;
+            int purchases = 1;
             if (parts.Length >= 3)
             {
-                if (!int.TryParse(parts[2], out amount) || amount <= 0)
+                if (!int.TryParse(parts[2], out purchases) || purchases <= 0)
                 {
-                    SayPlayer(entityId, "Invalid amount. Example: /buy 2 3");
+                    SayPlayer(entityId, L.Get(lang, "shop.buy.invalid_purchases"));
                     return;
                 }
             }
 
-            // Optional: prevent absurd spam buys
-            amount = Math.Min(amount, 5000);
+            purchases = Math.Min(purchases, 5000);
 
             var list = BuildEnabledShopList(cfg);
             if (list.Count == 0)
             {
-                SayPlayer(entityId, "Shop has no enabled items.");
+                SayPlayer(entityId, L.Get(lang, "shop.empty"));
                 return;
             }
 
             if (itemNumber > list.Count)
             {
-                SayPlayer(entityId, $"That item number is out of range. Use /shop (1-{list.Count}).");
+                SayPlayer(entityId, L.Format(lang, "shop.buy.out_of_range",
+                    ("min", 1),
+                    ("max", list.Count)
+                ));
                 return;
             }
 
             var entry = list[itemNumber - 1];
             string key = entry.key;
-            int costEach = entry.cost;
+            int costEach = Math.Max(0, entry.cost);
+            int qtyPerPurchase = Math.Max(1, entry.qty);
 
-            if (costEach < 0) costEach = 0;
-
-            // Total cost (checked for overflow)
-            long totalCostLong = (long)costEach * (long)amount;
+            long totalCostLong = (long)costEach * (long)purchases;
             if (totalCostLong > int.MaxValue)
             {
-                SayPlayer(entityId, "That purchase is too large.");
+                SayPlayer(entityId, L.Get(lang, "shop.buy.too_large_cost"));
                 return;
             }
             int totalCost = (int)totalCostLong;
 
-            // Enforce optional per-10-level limit (for skill_token, or any item you set LimitPer10Levels on)
+            long totalUnitsLong = (long)purchases * (long)qtyPerPurchase;
+            if (totalUnitsLong > int.MaxValue)
+            {
+                SayPlayer(entityId, L.Get(lang, "shop.buy.too_large_qty"));
+                return;
+            }
+            int totalUnits = (int)totalUnitsLong;
+
             if (cfg.Shop.Items.TryGetValue(key, out var itemCfg) && itemCfg != null && itemCfg.LimitPer10Levels)
             {
                 int playerLevel = TryGetPlayerLevel(entityId, playerId);
-                int allowedLifetime = Math.Max(1, (playerLevel / 10) + 1); // 1-9 => 1, 10-19 => 2, etc.
+                int allowedLifetime = Math.Max(1, (playerLevel / 10) + 1);
 
                 int alreadyBought = PlayerStorage.GetPurchaseCount(playerId, key);
-                if (alreadyBought + amount > allowedLifetime)
+                if (alreadyBought + purchases > allowedLifetime)
                 {
-                    SayPlayer(entityId, $"Limit reached for {key}. Allowed: {allowedLifetime} total at your level (already bought {alreadyBought}).");
+                    SayPlayer(entityId, L.Format(lang, "shop.buy.limit_reached",
+                        ("key", key),
+                        ("allowed", allowedLifetime),
+                        ("already", alreadyBought)
+                    ));
                     return;
                 }
             }
 
-            // Spend RP
             if (!PlayerStorage.TrySpendRP(playerId, totalCost, out int newBalance))
             {
                 int cur = PlayerStorage.GetRP(playerId);
-                SayPlayer(entityId, $"Not enough RP. Cost: {totalCost}, You have: {cur}.");
+                SayPlayer(entityId, L.Format(lang, "shop.buy.not_enough_rp",
+                    ("cost", totalCost),
+                    ("have", cur)
+                ));
                 return;
             }
 
-            bool success = GrantShopItem(playerId, entityId, key, amount);
+            bool success = GrantShopItem(playerId, entityId, key, totalUnits, lang);
 
             if (!success)
             {
-                // Refund if the grant failed
                 PlayerStorage.AddRP(playerId, totalCost);
-                SayPlayer(entityId, "Purchase failed (item/action could not be granted). RP refunded.");
+                SayPlayer(entityId, L.Get(lang, "shop.buy.failed_refunded"));
                 return;
             }
 
-            // Record purchase count (for limits + stats)
-            PlayerStorage.IncrementPurchaseCount(playerId, key, amount);
+            PlayerStorage.IncrementPurchaseCount(playerId, key, purchases);
 
             if (cfg.Shop.LogPurchases)
-                Debug.Log($"[DMChatTeleport] SHOP: {playerId} bought {key} x{amount} for {totalCost} RP. NewBalance={newBalance}");
+                Debug.Log($"[DMChatTeleport] SHOP: {playerId} bought {key} x{totalUnits} ({purchases} purchases @ qty {qtyPerPurchase}) for {totalCost} RP. NewBalance={newBalance}");
 
-            SayPlayer(entityId, $"Purchased: {key} x{amount} (-{totalCost} RP). Wallet: {newBalance} RP");
+            SayPlayer(entityId, L.Format(lang, "shop.buy.success",
+                ("key", key),
+                ("units", totalUnits),
+                ("cost", totalCost),
+                ("wallet", newBalance)
+            ));
+
             PlayerStorage.Save();
         }
-        
-  
-        private static List<(string key, int cost)> BuildEnabledShopList(ModConfig cfg)
+
+        private static List<(string key, int cost, int qty)> BuildEnabledShopList(ModConfig cfg)
         {
-            var result = new List<(string key, int cost)>();
+            var result = new List<(string key, int cost, int qty)>();
 
             if (cfg?.Shop?.Items == null)
                 return result;
@@ -312,31 +350,22 @@ namespace DMChatTeleport
                     continue;
 
                 int cost = Math.Max(0, itemCfg.CostRP);
-                result.Add((key.Trim(), cost));
+                int qty = Math.Max(1, itemCfg.Qty);
+
+                result.Add((key.Trim(), cost, qty));
             }
 
-            // Stable ordering by key (so item numbers don’t jump around randomly)
-            result.Sort((a, b) => string.Compare(a.key, b.key, StringComparison.OrdinalIgnoreCase));
             return result;
         }
 
-        private static bool GrantShopItem(string playerId, int entityId, string key, int amount)
+        private static bool GrantShopItem(string playerId, int entityId, string key, int amount, string lang)
         {
             if (string.IsNullOrWhiteSpace(key) || amount <= 0)
                 return false;
 
-            // Special actions
-            if (key.Equals("skill_token", StringComparison.OrdinalIgnoreCase))
-                return HandleSkillToken(entityId, amount);
-
-            if (key.Equals("clone_item", StringComparison.OrdinalIgnoreCase))
-                return HandleCloneItem(entityId, amount);
-
-            if (key.Equals("reroll_item", StringComparison.OrdinalIgnoreCase))
-                return HandleRerollItem(entityId, amount);
 
             if (key.Equals("armor_q3_random", StringComparison.OrdinalIgnoreCase))
-                return HandleRandomArmorQ3(entityId, amount);
+                return HandleRandomArmorQ3(entityId, amount, lang);
 
             // Default: treat as a real item id
             return CommandHandler.GiveItemToPlayer(entityId, key, amount, quality: 1);
@@ -344,14 +373,14 @@ namespace DMChatTeleport
 
         // ----- Special handlers  -----
 
-        private static bool HandleRandomArmorQ3(int entityId, int amount)
+        private static bool HandleRandomArmorQ3(int entityId, int amount, string lang)
         {
             if (entityId <= 0 || amount <= 0)
                 return false;
 
             if (RandomArmorQ3Pool == null || RandomArmorQ3Pool.Length == 0)
             {
-                SayPlayer(entityId, "armor_q3_random pool is empty.");
+                SayPlayer(entityId, L.Get(lang, "shop.special.armor_q3_random.empty_pool"));
                 return false;
             }
 
@@ -363,7 +392,6 @@ namespace DMChatTeleport
 
                 if (!ok)
                 {
-                    // If any fail, stop and signal failure so caller refunds RP
                     Debug.LogWarning($"[DMChatTeleport] armor_q3_random failed to give '{armorId}' (q3) to entityId={entityId} at i={i + 1}/{amount}");
                     return false;
                 }
@@ -372,7 +400,7 @@ namespace DMChatTeleport
             return true;
         }
 
-        private static bool HandleSkillToken(int entityId, int amount)
+        private static bool HandleSkillToken(int entityId, int amount, string lang)
         {
             if (entityId <= 0 || amount <= 0)
                 return false;
@@ -383,40 +411,39 @@ namespace DMChatTeleport
                 var ep = world?.GetEntity(entityId) as EntityPlayer;
                 if (ep == null)
                 {
-                    SayPlayer(entityId, "Could not find your player entity.");
+                    SayPlayer(entityId, L.Get(lang, "shop.special.skill_token.no_entity"));
                     return false;
                 }
 
                 if (ep.Progression == null)
                 {
-                    SayPlayer(entityId, "Your progression data is not available right now.");
+                    SayPlayer(entityId, L.Get(lang, "shop.special.skill_token.no_progression"));
                     return false;
                 }
 
                 // This matches RewardSkillPoints.GiveReward exactly.
                 ep.Progression.SkillPoints += amount;
 
-                SayPlayer(entityId, $"Granted {amount} skill point(s).");
+                SayPlayer(entityId, L.Format(lang, "shop.special.skill_token.granted", ("amount", amount)));
                 return true;
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"[DMChatTeleport] HandleSkillToken failed: {ex}");
-                SayPlayer(entityId, "Failed to grant skill points (exception).");
+                SayPlayer(entityId, L.Get(lang, "shop.special.skill_token.failed_exception"));
                 return false;
             }
         }
 
-
-        private static bool HandleCloneItem(int entityId, int amount)
+        private static bool HandleCloneItem(int entityId, int amount, string lang)
         {
-            SayPlayer(entityId, $"clone_item not implemented yet (requested x{amount}).");
+            SayPlayer(entityId, L.Format(lang, "shop.special.clone_item.not_implemented", ("amount", amount)));
             return false;
         }
 
-        private static bool HandleRerollItem(int entityId, int amount)
+        private static bool HandleRerollItem(int entityId, int amount, string lang)
         {
-            SayPlayer(entityId, $"reroll_item not implemented yet (requested x{amount}).");
+            SayPlayer(entityId, L.Format(lang, "shop.special.reroll_item.not_implemented", ("amount", amount)));
             return false;
         }
 
@@ -452,9 +479,10 @@ namespace DMChatTeleport
             if (entityId <= 0 || string.IsNullOrWhiteSpace(msg))
                 return;
 
+            // Escape quotes to avoid breaking the console command
+            msg = msg.Replace("\"", "\\\"");
+
             SdtdConsole.Instance.ExecuteSync($"sayplayer {entityId} \"{msg}\"", null);
         }
-
-
     }
 }

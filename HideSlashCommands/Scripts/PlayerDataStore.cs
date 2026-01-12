@@ -48,6 +48,9 @@ namespace DMChatTeleport
             public int TotalOnlineSecondsLifetime = 0;
 
             public Dictionary<string, int> ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            // Per-player preferred language for localized chat output (e.g. "en", "de", "ja")
+            public string PreferredLanguage = "en";
         }
 
         public static class PlayerStorage
@@ -67,6 +70,14 @@ namespace DMChatTeleport
                     return null;
 
                 return id.Trim();
+            }
+
+            private static string NormalizeLanguageOrDefault(string lang, string fallback = "en")
+            {
+                if (string.IsNullOrWhiteSpace(lang))
+                    return fallback;
+
+                return lang.Trim().ToLowerInvariant();
             }
 
             public static void Load()
@@ -113,6 +124,8 @@ namespace DMChatTeleport
                             if (pd.ShopPurchaseCounts == null)
                                 pd.ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
+                            pd.PreferredLanguage = NormalizeLanguageOrDefault(pd.PreferredLanguage);
+
                             cleaned[key] = pd;
                         }
 
@@ -152,6 +165,8 @@ namespace DMChatTeleport
 
                             if (pd.ShopPurchaseCounts == null)
                                 pd.ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                            pd.PreferredLanguage = NormalizeLanguageOrDefault(pd.PreferredLanguage);
 
                             normalized[key] = pd;
                         }
@@ -201,6 +216,7 @@ namespace DMChatTeleport
                         pd = new PlayerData
                         {
                             playerId = playerId,
+                            PreferredLanguage = "en",
                             ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
                         };
                         data[playerId] = pd;
@@ -210,6 +226,8 @@ namespace DMChatTeleport
                         pd.playerId = playerId;
                         if (pd.ShopPurchaseCounts == null)
                             pd.ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                        pd.PreferredLanguage = NormalizeLanguageOrDefault(pd.PreferredLanguage);
                     }
 
                     return pd;
@@ -230,6 +248,7 @@ namespace DMChatTeleport
                         pd = new PlayerData
                         {
                             playerId = playerId,
+                            PreferredLanguage = "en",
                             ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
                         };
                         data[playerId] = pd;
@@ -240,6 +259,8 @@ namespace DMChatTeleport
                         pd.playerId = playerId;
                         if (pd.ShopPurchaseCounts == null)
                             pd.ShopPurchaseCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                        pd.PreferredLanguage = NormalizeLanguageOrDefault(pd.PreferredLanguage);
                     }
 
                     return pd;
@@ -329,6 +350,26 @@ namespace DMChatTeleport
                     count += amount;
                     pd.ShopPurchaseCounts[itemKey] = count;
                     return count;
+                }
+            }
+
+            // NEW: language helpers (minimal additions)
+            public static string GetLanguage(string playerId, string fallback = "en")
+            {
+                lock (_lock)
+                {
+                    var pd = Get(playerId);
+                    pd.PreferredLanguage = NormalizeLanguageOrDefault(pd.PreferredLanguage, fallback);
+                    return pd.PreferredLanguage;
+                }
+            }
+
+            public static void SetLanguage(string playerId, string lang)
+            {
+                lock (_lock)
+                {
+                    var pd = Get(playerId);
+                    pd.PreferredLanguage = NormalizeLanguageOrDefault(lang, "en");
                 }
             }
 

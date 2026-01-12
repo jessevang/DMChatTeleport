@@ -36,21 +36,59 @@ namespace DMChatTeleport
             if (created)
                 PlayerStorage.Save();
 
+            string lang = PlayerStorage.GetLanguage(playerId, "en");
+
             World world = GameManager.Instance.World;
             if (world == null)
                 return;
 
+
+
+
+
             // --------------------------------------------------------------------
-            // Reloads Config Options
+            // LANGUAGE: /lang [code]
             // --------------------------------------------------------------------
-            if (cmd.Equals("/reloadconfig", StringComparison.OrdinalIgnoreCase))
+            // /lang           -> shows current + available
+            // /lang en        -> sets English
+            // /lang ja        -> sets Japanese
+            if (cmd.Equals("/lang", StringComparison.OrdinalIgnoreCase) ||
+                cmd.StartsWith("/lang ", StringComparison.OrdinalIgnoreCase))
             {
-                ConfigManager.Load();
-                SendServerMessage(entityId, "Config reloaded.");
+                string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                var available = new HashSet<string>(L.GetAvailableLanguages(), StringComparer.OrdinalIgnoreCase);
+                string list = string.Join(", ", available);
+
+                // List current & available
+                if (split.Length == 1)
+                {
+                    string current = PlayerStorage.GetLanguage(playerId, "en");
+
+                    SendServerMessage(entityId, L.Format(current, "lang.current", ("lang", current)));
+                    SendServerMessage(entityId, L.Format(current, "lang.available", ("list", list)));
+                    SendServerMessage(entityId, L.Get(current, "lang.usage"));
+                    return;
+                }
+
+                string requested = split[1].Trim().ToLowerInvariant();
+
+                // If the requested language file doesn't exist, reject.
+                if (!available.Contains(requested))
+                {
+                    string current = PlayerStorage.GetLanguage(playerId, "en");
+                    SendServerMessage(entityId, L.Format(current, "lang.invalid", ("list", list)));
+                    SendServerMessage(entityId, L.Get(current, "lang.usage"));
+                    return;
+                }
+
+                PlayerStorage.SetLanguage(playerId, requested);
+                PlayerStorage.Save();
+
+                // Confirm in the NEW language
+                SendServerMessage(entityId, L.Format(requested, "lang.set", ("lang", requested)));
                 return;
             }
-
-
 
             // --------------------------------------------------------------------
             // TELEPORT COMMANDS DISABLED?
@@ -67,16 +105,28 @@ namespace DMChatTeleport
                 bool active = BloodMoonUtil.IsActiveNow();
                 var info = BloodMoonUtil.GetDebugInfo();
 
-                SendServerMessage(entityId,
-                    $"Blood Moon Active: {active} | Day={info.day} Hour={info.hour} | BMDay={info.bmDay} | Dusk={info.dusk} Dawn={info.dawn}");
+                SendServerMessage(entityId, L.Format(lang, "cmd.isbloodmoon.result",
+                    ("active", active),
+                    ("day", info.day),
+                    ("hour", info.hour),
+                    ("bmDay", info.bmDay),
+                    ("dusk", info.dusk),
+                    ("dawn", info.dawn)
+                ));
 
                 return;
             }
 
-            // Shop & RP commands
-            if (CommandHandlerShop.TryHandle(playerId, entityId, cmd))
+
+
+            // Route to Admin/Console commands
+            if (CommandHandlerAdmin.TryHandle(playerId, entityId, cmd))
                 return;
 
+
+            // Shop & RP commands (these should also localize internally later)
+            if (CommandHandlerShop.TryHandle(playerId, entityId, cmd))
+                return;
 
             // ====================================================================
             // TELEPORT: SETBASE
@@ -85,7 +135,7 @@ namespace DMChatTeleport
             {
                 if (!teleportsEnabled)
                 {
-                    SendServerMessage(entityId, "Teleport commands are disabled on this server.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.teleport.disabled"));
                     return;
                 }
 
@@ -98,7 +148,7 @@ namespace DMChatTeleport
 
                     player.hasBase = true;
 
-                    SendServerMessage(entityId, "Base set!");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.setbase.ok"));
                     PlayerStorage.Save();
                 }
                 return;
@@ -111,13 +161,13 @@ namespace DMChatTeleport
             {
                 if (!teleportsEnabled)
                 {
-                    SendServerMessage(entityId, "Teleport commands are disabled on this server.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.teleport.disabled"));
                     return;
                 }
 
                 if (!player.hasBase)
                 {
-                    SendServerMessage(entityId, "No base defined. Use /setbase first.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.base.no_base"));
                     return;
                 }
 
@@ -130,12 +180,12 @@ namespace DMChatTeleport
 
                     player.hasReturn = true;
 
-                    if (!TryConsumeTeleportCooldown(entityId, player))
+                    if (!TryConsumeTeleportCooldown(entityId, player, lang))
                         return;
 
                     Teleport(entityId, new Vector3(player.baseX, player.baseY, player.baseZ));
 
-                    SendServerMessage(entityId, "Teleported to base.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.base.ok"));
                     PlayerStorage.Save();
                 }
                 return;
@@ -148,22 +198,22 @@ namespace DMChatTeleport
             {
                 if (!teleportsEnabled)
                 {
-                    SendServerMessage(entityId, "Teleport commands are disabled on this server.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.teleport.disabled"));
                     return;
                 }
 
                 if (!player.hasReturn)
                 {
-                    SendServerMessage(entityId, "No return location saved.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.return.no_saved"));
                     return;
                 }
 
-                if (!TryConsumeTeleportCooldown(entityId, player))
+                if (!TryConsumeTeleportCooldown(entityId, player, lang))
                     return;
 
                 Teleport(entityId, new Vector3(player.returnX, player.returnY, player.returnZ));
 
-                SendServerMessage(entityId, "Returned.");
+                SendServerMessage(entityId, L.Get(lang, "cmd.return.ok"));
                 player.hasReturn = false;
                 PlayerStorage.Save();
                 return;
@@ -174,21 +224,25 @@ namespace DMChatTeleport
             // ====================================================================
             if (cmd.Equals("/help", StringComparison.OrdinalIgnoreCase))
             {
-                SendServerMessage(entityId, "Commands:");
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.header"));
 
                 if (teleportsEnabled)
                 {
-                    SendServerMessage(entityId, "/setbase - sets teleport home");
-                    SendServerMessage(entityId, "/base - teleports to home");
-                    SendServerMessage(entityId, "/return - goes back to previous location");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.setbase"));
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.base"));
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.return"));
                 }
 
                 if (kitsEnabled)
                 {
-                    SendServerMessage(entityId, "/liststarterkits - lists all starter kits");
-                    SendServerMessage(entityId, "/pick <name> - Pick a starter kit");
-                    SendServerMessage(entityId, "/pick Random - Pick a random kit (gives bonus item)");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.liststarterkits"));
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.pick"));
+                    SendServerMessage(entityId, L.Get(lang, "cmd.help.pick_random"));
                 }
+
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.lang"));
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.reloadconfig"));
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.isbloodmoon"));
 
                 return;
             }
@@ -200,7 +254,7 @@ namespace DMChatTeleport
                                 cmd.StartsWith("/choose", StringComparison.OrdinalIgnoreCase) ||
                                 cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase)))
             {
-                SendServerMessage(entityId, "Starter kits are disabled on this server.");
+                SendServerMessage(entityId, L.Get(lang, "cmd.kits.disabled"));
                 return;
             }
 
@@ -211,16 +265,20 @@ namespace DMChatTeleport
             {
                 if (StarterKitManager.Kits.Count == 0)
                 {
-                    SendServerMessage(entityId, "No starter kits available.");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.kits.none"));
                     return;
                 }
 
-                SendServerMessage(entityId, "Available Starter Kits:");
+                SendServerMessage(entityId, L.Get(lang, "cmd.kits.list.header"));
 
                 foreach (var kv in StarterKitManager.Kits)
                 {
                     var kit = kv.Value;
-                    SendServerMessage(entityId, $"- {kit.Name}: {kit.Description}");
+                    // Keep the kit name/description as-is (server-defined content). Only localize the wrapper.
+                    SendServerMessage(entityId, L.Format(lang, "cmd.kits.list.item",
+                        ("name", kit.Name),
+                        ("desc", kit.Description)
+                    ));
                 }
 
                 return;
@@ -235,7 +293,7 @@ namespace DMChatTeleport
                 string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length < 2)
                 {
-                    SendServerMessage(entityId, "Usage: /pick <name>");
+                    SendServerMessage(entityId, L.Get(lang, "cmd.pick.usage"));
                     return;
                 }
 
@@ -246,7 +304,9 @@ namespace DMChatTeleport
 
                 if (player.HasPickedStarterKit)
                 {
-                    SendServerMessage(entityId, $"You already picked a starter kit: {player.PickedStarterKit}");
+                    SendServerMessage(entityId, L.Format(lang, "cmd.pick.already",
+                        ("kit", player.PickedStarterKit ?? "")
+                    ));
                     return;
                 }
 
@@ -257,14 +317,16 @@ namespace DMChatTeleport
                     var list = new List<StarterKit>(StarterKitManager.Kits.Values);
                     if (list.Count == 0)
                     {
-                        SendServerMessage(entityId, "No starter kits available.");
+                        SendServerMessage(entityId, L.Get(lang, "cmd.kits.none"));
                         return;
                     }
 
                     System.Random rnd = new System.Random();
                     kit = list[rnd.Next(list.Count)];
 
-                    SendServerMessage(entityId, $"Random starter kit selected: {kit.Name}");
+                    SendServerMessage(entityId, L.Format(lang, "cmd.pick.random_selected",
+                        ("kit", kit.Name)
+                    ));
 
                     // Bonus item for RANDOM pick (skip if invalid)
                     GiveItemToPlayer(entityId, "adminT1QuestTicket", 2, 1);
@@ -274,7 +336,7 @@ namespace DMChatTeleport
                 {
                     if (!StarterKitManager.TryGetKit(kitName, out kit))
                     {
-                        SendServerMessage(entityId, "Starter kit not found.");
+                        SendServerMessage(entityId, L.Get(lang, "cmd.pick.not_found"));
                         return;
                     }
                 }
@@ -283,7 +345,9 @@ namespace DMChatTeleport
                 if (ep == null)
                     return;
 
-                SendServerMessage(entityId, $"Starter kit '{kit.Name}' applied! Items dropped:");
+                SendServerMessage(entityId, L.Format(lang, "cmd.pick.applied_header",
+                    ("kit", kit.Name)
+                ));
 
                 int i = 0;
                 foreach (var item in kit.Items)
@@ -292,7 +356,7 @@ namespace DMChatTeleport
 
                     if (item == null || string.IsNullOrWhiteSpace(item.ItemName) || item.Count <= 0)
                     {
-                        SendServerMessage(entityId, $"{i}. (skipped invalid item entry)");
+                        SendServerMessage(entityId, L.Format(lang, "cmd.pick.item_invalid", ("index", i)));
                         Thread.Sleep(StarterKitGiveDelayMs);
                         continue;
                     }
@@ -302,9 +366,21 @@ namespace DMChatTeleport
                     bool given = GiveItemToPlayer(entityId, item.ItemName, item.Count, q);
 
                     if (given)
-                        SendServerMessage(entityId, $"{i}. {item.ItemName}, Qty:{item.Count}, Q:{q}");
+                    {
+                        SendServerMessage(entityId, L.Format(lang, "cmd.pick.item_ok",
+                            ("index", i),
+                            ("item", item.ItemName),
+                            ("qty", item.Count),
+                            ("q", q)
+                        ));
+                    }
                     else
-                        SendServerMessage(entityId, $"{i}. (skipped) {item.ItemName} - item not found / invalid");
+                    {
+                        SendServerMessage(entityId, L.Format(lang, "cmd.pick.item_skip",
+                            ("index", i),
+                            ("item", item.ItemName)
+                        ));
+                    }
 
                     Thread.Sleep(StarterKitGiveDelayMs);
                 }
@@ -327,6 +403,12 @@ namespace DMChatTeleport
 
         private static void SendServerMessage(int entityId, string msg)
         {
+            if (string.IsNullOrEmpty(msg))
+                return;
+
+            // Escape quotes to avoid breaking the console command
+            msg = msg.Replace("\"", "\\\"");
+
             SdtdConsole.Instance.ExecuteSync(
                 $"sayplayer {entityId} \"{msg}\"",
                 null
@@ -457,7 +539,7 @@ namespace DMChatTeleport
             return true;
         }
 
-        private static bool TryConsumeTeleportCooldown(int entityId, DataPlayer player)
+        private static bool TryConsumeTeleportCooldown(int entityId, DataPlayer player, string lang)
         {
             int cdSeconds = ConfigManager.Config?.TeleportCooldownSeconds ?? 0;
             if (cdSeconds <= 0)
@@ -472,7 +554,9 @@ namespace DMChatTeleport
                 if (elapsed.TotalSeconds < cdSeconds)
                 {
                     int remain = (int)Math.Ceiling(cdSeconds - elapsed.TotalSeconds);
-                    SendServerMessage(entityId, $"Teleport is on cooldown. Try again in {remain}s.");
+                    SendServerMessage(entityId, L.Format(lang, "cmd.teleport.cooldown",
+                        ("seconds", remain)
+                    ));
                     return false;
                 }
             }
