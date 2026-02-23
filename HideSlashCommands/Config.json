@@ -68,7 +68,7 @@
     
       "giveXP_T2_admin": {
         "Enabled": true,
-        "CostRP": 20,
+        "CostRP": 40,
         "Qty": 1
       },
       "drugAtomJunkies": {

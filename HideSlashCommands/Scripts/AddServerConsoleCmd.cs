@@ -90,8 +90,13 @@ namespace DMChatTeleport
 
     public class ConsoleCmdReloadconfig : ConsoleCmdAbstract
     {
-        public override string getDescription() => "[DMChatTeleport] Reload DMChatTeleport config";
-        public override string getHelp() => "Usage:\n  reloadconfig\n";
+        // UPDATED: description/help reflect new behavior (reload config + starter kits)
+        public override string getDescription() => "[DMChatTeleport] Reload DMChatTeleport config + starter kits";
+        public override string getHelp() =>
+            "Usage:\n" +
+            "  reloadconfig\n" +
+            "Notes:\n" +
+            "  Reloads Mods/DMChatTeleport/config.json and Mods/DMChatTeleport/Data/StarterKitConfig.json\n";
         public override string[] getCommands() => new[] { "reloadconfig" };
 
         public override void Execute(List<string> _params, CommandSenderInfo _senderInfo)
@@ -118,9 +123,9 @@ namespace DMChatTeleport
         public override string getDescription() => "[DMChatTeleport] List online players";
         public override string getHelp() =>
             "Usage:\n" +
-            "  players\n" +
-            "  listplayers\n";
-        public override string[] getCommands() => new[] { "players", "listplayers" };
+            "  dmplayers\n" +
+            "  dmlistplayers\n";
+        public override string[] getCommands() => new[] { "dmplayers", "dmlistplayers" };
 
         public override void Execute(List<string> _params, CommandSenderInfo _senderInfo)
         {

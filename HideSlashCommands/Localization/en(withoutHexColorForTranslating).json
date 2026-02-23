@@ -1,0 +1,155 @@
+﻿{
+  "bloodmoon.end.no_kills": "Blood Moon ended! No kills were recorded.",
+  "bloodmoon.end.title": "Blood Moon ended!",
+  "bloodmoon.total_kills.header": "Total Kills",
+  "bloodmoon.total_kills.rank_line": "{rank}. {name} - {kills} kills",
+  "bloodmoon.total_kills.footer": "Total kills: {total}",
+
+  "bloodmoon.party.header": "Party Results",
+  "bloodmoon.party.none": "No party kills recorded.",
+  "bloodmoon.party.title": "{partyTitle}",
+  "bloodmoon.party.members": "Members: {members}",
+  "bloodmoon.party.total": "Party Total Kills: {kills}",
+
+  "bloodmoon.party.solo_title": "Solo: {name}",
+  "bloodmoon.party.party_title": "Party ({count} players)",
+  "bloodmoon.party.group_title": "Group",
+
+  "bloodmoon.rewards.default_reason": "Rewards",
+  "bloodmoon.rewards.message": "Blood Moon Rewards: {reasons} = +{total} RP",
+
+  "bloodmoon.rewards.reason.presence": "Presence +{rp}",
+  "bloodmoon.rewards.reason.party_first": "Party 1st ({partyTitle}) +{rp}",
+  "bloodmoon.rewards.reason.party_second": "Party 2nd ({partyTitle}) +{rp}",
+  "bloodmoon.rewards.reason.topkills_first": "Top Kills 1st +{rp}",
+  "bloodmoon.rewards.reason.topkills_second": "Top Kills 2nd +{rp}",
+  "bloodmoon.rewards.reason.killbonus": "Kill Bonus ({kills} kills) +{rp}",
+
+  "lang.current": "Current language: {lang}",
+  "lang.available": "Available languages: {list}",
+  "lang.usage": "Usage: /lang <code>  (example: /lang en)",
+  "lang.set": "Language set to {lang}",
+  "lang.invalid": "Invalid language code. Available: {list}",
+
+  "cmd.reloadconfig.ok": "Config + Starter Kits reloaded.",
+
+  "cmd.teleport.disabled": "Teleport commands are disabled on this server.",
+  "cmd.teleport.cooldown": "Teleport is on cooldown. Try again in {seconds}s.",
+
+  "cmd.setbase.ok": "Base set!",
+  "cmd.base.no_base": "No base defined. Use /setbase first.",
+  "cmd.base.ok": "Teleported to base.",
+  "cmd.return.no_saved": "No return location saved.",
+  "cmd.return.ok": "Returned.",
+
+  "cmd.help.header": "Commands:",
+  "cmd.help.setbase": "/setbase - sets teleport home",
+  "cmd.help.base": "/b or /base - teleports to home",
+  "cmd.help.return": "/r or /return - goes back to previous location",
+  "cmd.help.liststarterkits": "/liststarterkits - lists all starter kits",
+  "cmd.help.pick": "/pick <kit#> - Pick a starter kit",
+  "cmd.help.pick_random": "/pick Random - Pick a random kit (gives bonus item)",
+  "cmd.help.lang": "/lang - show/set your language (example: /lang en)",
+
+  "cmd.help.isbloodmoon": "/isbloodmoon - shows if blood moon is active",
+
+  "cmd.help.rp": "/rp, /wallet - shows your Reward Points wallet",
+  "cmd.help.shop": "/shop - lists shop items",
+  "cmd.help.buy": "/buy <ShopItem#> <Quantity> - buys an item from the shop",
+
+  "cmd.help.topic.rp.header": "Reward Points Commands:",
+  "cmd.help.topic.rp.balance": "/rp or /wallet - shows your wallet",
+  "cmd.help.topic.rp.shop": "/shop - view shop items",
+  "cmd.help.topic.rp.buy": "/buy <ShopItem#> <Quantity> - buy shop items",
+
+  "cmd.help.topic.shop.header": "Shop Commands:",
+  "cmd.help.topic.shop.list": "/shop - lists shop items",
+  "cmd.help.topic.shop.buy": "/buy <ShopItem#> <Quantity> - buys an item",
+  "cmd.help.topic.shop.rp": "/rp or /wallet - shows your Reward Points wallet",
+
+  "cmd.kits.disabled": "Starter kits are disabled on this server.",
+  "cmd.kits.none": "No starter kits available.",
+
+  "cmd.kits.list.header": "Available Starter Kits:",
+  "cmd.kits.list.item": "- {name}: {desc}",
+  "cmd.kits.list.item_numbered": "{num}. {name} - {desc}",
+  "cmd.kits.pick_hint": "Type /pick <kit#> or /pick Random",
+
+  "cmd.pick.usage": "Usage: /pick <kit#>",
+  "cmd.pick.usage_numbered": "Usage: /pick <kit#>  (use /starterkits to see kit numbers)",
+  "cmd.pick.invalid_number": "Invalid kit number. Use /starterkits to see kit numbers.",
+  "cmd.pick.number_out_of_range": "That kit number is out of range. Choose {min}-{max}.",
+
+  "cmd.pick.already": "You already picked a starter kit: {kit}",
+  "cmd.pick.not_found": "Starter kit not found.",
+  "cmd.pick.random_selected": "Random starter kit selected: {kit}",
+  "cmd.pick.applied_header": "Starter kit '{kit}' applied! Items added to inventory:",
+  "cmd.pick.item_invalid": "{index}. (skipped invalid item entry)",
+  "cmd.pick.item_ok": "{index}. {item}, Qty:{qty}, Q:{q}",
+  "cmd.pick.item_skip": "{index}. (skipped) {item} - item not found / invalid",
+
+  "cmd.isbloodmoon.result": "Blood Moon Active: {active} | Day={day} Hour={hour} | BMDay={bmDay} | Dusk={dusk} Dawn={dawn}",
+
+  "shop.rp.disabled": "Reward Points are disabled on this server.",
+  "shop.disabled": "Shop is disabled on this server.",
+  "shop.empty": "Shop has no enabled items.",
+
+  "shop.wallet.line": "Wallet: {rp} RP",
+  "shop.items.header": "Shop Items:",
+
+  "shop.item.special_suffix": " (special)",
+  "shop.item.line": "{index}. {key} - {cost} RP (Qty {qty}){special}",
+
+  "shop.buy.usage_short": "Use: /buy <ShopItem#> <Quantity>",
+  "shop.buy.usage": "Usage: /buy <ShopItem#> <Quantity>",
+  "shop.buy.invalid_item_number": "Invalid item number. Use /shop to see item numbers.",
+  "shop.buy.invalid_purchases": "Invalid purchases. Example: /buy 2 3",
+  "shop.buy.out_of_range": "That item number is out of range. Use /shop ({min}-{max}).",
+  "shop.buy.too_large_cost": "That purchase is too large.",
+  "shop.buy.too_large_qty": "That purchase quantity is too large.",
+
+  "shop.buy.limit_reached": "Limit reached for {key}. Allowed: {allowed} total at your level (already bought {already}).",
+  "shop.buy.not_enough_rp": "Not enough RP. Cost: {cost}, You have: {have}.",
+  "shop.buy.failed_refunded": "Purchase failed (item/action could not be granted). RP refunded.",
+  "shop.buy.success": "Purchased: {key} x{units} (-{cost} RP). Wallet: {wallet} RP",
+
+  "shop.special.armor_q3_random.empty_pool": "armor_q3_random pool is empty.",
+
+  "shop.special.skill_token.no_entity": "Could not find your player entity.",
+  "shop.special.skill_token.no_progression": "Your progression data is not available right now.",
+  "shop.special.skill_token.granted": "Granted {amount} skill point(s).",
+  "shop.special.skill_token.failed_exception": "Failed to grant skill points (exception).",
+  "shop.special.clone_item.not_implemented": "clone_item not implemented yet (requested x{amount}).",
+  "shop.special.reroll_item.not_implemented": "reroll_item not implemented yet (requested x{amount}).",
+
+  "welcome.back": "Welcome back, {name}. Reward Points: {rp}",
+  "welcome.kits_hint": "Use /starterkits to view and /pick <starterkit#> to claim your starter kits. Use /pick Random to get a random kit and something extra",
+
+  "admin.addrp.usage": "Usage: /addrp <playerName|entityId|playerId> <amount>",
+  "admin.setrp.usage": "Usage: /setrp <playerName|entityId|playerId> <amount>",
+  "admin.rpof.usage": "Usage: /getrp or /rpof <playerName|entityId|playerId>",
+
+  "admin.amount.invalid": "Invalid amount.",
+  "admin.target.not_found": "Player not found: {target}",
+
+  "admin.rp.updated": "RP updated: {name} {amount}. New wallet: {wallet} RP",
+  "admin.rp.updated_self": "Admin updated your RP: {amount}. New wallet: {wallet} RP",
+
+  "admin.rp.set": "RP set: {name} = {wallet} RP",
+  "admin.rp.set_self": "Admin set your RP to {wallet}.",
+
+  "admin.rp.of": "RP for {name}: {wallet} RP",
+
+  "admin.players.none": "No connected players.",
+  "admin.players.list": "Online: {list}",
+
+  "admin.help.header": "Admin Commands:",
+  "admin.help.denied": "You do not have permission to view admin commands.",
+  "admin.help.tip": "Tip: use /help admin to view admin commands anytime.",
+
+  "admin.help.reloadconfig": "/reloadconfig - reloads config",
+  "admin.help.addrp": "/addrp <playerName|entityId|playerId> <amount> - add RP to a player",
+  "admin.help.setrp": "/setrp <playerName|entityId|playerId> <amount> - set a player's RP wallet",
+  "admin.help.rpof": "/rpof <playerName|entityId|playerId> - view RP wallet of a player",
+  "admin.help.players": "/players - lists connected players"
+}

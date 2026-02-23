@@ -31,11 +31,29 @@ namespace DMChatTeleport
 
             if (verb.Equals("reloadconfig", StringComparison.OrdinalIgnoreCase))
             {
-                ConfigManager.Load();
-                if (!isConsole)
-                    lang = PlayerStorage.GetLanguage(callerPlayerId, "en");
+                try
+                {
+                    // Reload config.json
+                    ConfigManager.Load();
 
-                Reply(isConsole, callerEntityId, lang, L.Get(lang, "cmd.reloadconfig.ok"));
+                    // Reload StarterKitConfig.json
+                    StarterKitManager.Load();
+
+                    if (!isConsole)
+                        lang = PlayerStorage.GetLanguage(callerPlayerId, "en");
+
+                    Reply(isConsole, callerEntityId, lang, L.Get(lang, "cmd.reloadconfig.ok"));
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError("[DMChatTeleport] reloadconfig failed: " + ex);
+
+                    if (!isConsole)
+                        Reply(false, callerEntityId, lang, "[DMChatTeleport] Reload failed. Check server logs.");
+                    else
+                        Debug.Log("[DMChatTeleport] Reload failed. Check logs.");
+                }
+
                 return true;
             }
 
@@ -51,14 +69,14 @@ namespace DMChatTeleport
                 return true;
             }
 
-            if (verb.Equals("getrp", StringComparison.OrdinalIgnoreCase))
+            if (verb.Equals("getrp", StringComparison.OrdinalIgnoreCase) || verb.Equals("rpof", StringComparison.OrdinalIgnoreCase))
             {
                 HandleRpOf(isConsole, callerEntityId, lang, parts);
                 return true;
             }
 
-            if (verb.Equals("players", StringComparison.OrdinalIgnoreCase) ||
-                verb.Equals("listplayers", StringComparison.OrdinalIgnoreCase))
+            if (verb.Equals("dmplayers", StringComparison.OrdinalIgnoreCase) ||
+                verb.Equals("dmlistplayers", StringComparison.OrdinalIgnoreCase))
             {
                 HandleListPlayers(isConsole, callerEntityId, lang);
                 return true;
@@ -327,7 +345,8 @@ namespace DMChatTeleport
 
             if (isConsole)
             {
-                Debug.Log("[DMChatTeleport] " + msg);
+                //Debug.Log("[DMChatTeleport] " + msg);  
+                SdtdConsole.Instance.Output("[DMChatTeleport] " + msg);
                 return;
             }
 

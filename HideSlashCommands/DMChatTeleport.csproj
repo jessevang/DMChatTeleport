@@ -118,6 +118,9 @@
     <Content Include="Data\StarterKitConfigUI.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="Localization\en%28withoutHexColorForTranslating%29.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Localization\en.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

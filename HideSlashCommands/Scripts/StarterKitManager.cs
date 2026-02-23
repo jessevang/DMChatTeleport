@@ -96,5 +96,23 @@ namespace DMChatTeleport
                 return Kits.TryGetValue(name, out kit);
             }
         }
+
+        public static List<StarterKit> GetKitsNumbered()
+        {
+            lock (_lock)
+            {
+                var list = new List<StarterKit>(Kits.Values);
+
+                list.Sort((a, b) =>
+                {
+                    int c = string.Compare(a?.Name ?? "", b?.Name ?? "", StringComparison.OrdinalIgnoreCase);
+                    if (c != 0) return c;
+                    return string.Compare(a?.Description ?? "", b?.Description ?? "", StringComparison.OrdinalIgnoreCase);
+                });
+
+                return list;
+            }
+        }
+    
     }
 }

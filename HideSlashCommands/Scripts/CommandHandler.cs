@@ -119,12 +119,12 @@ namespace DMChatTeleport
 
 
 
-            // Route to Admin/Console commands
+
             if (CommandHandlerAdmin.TryHandle(playerId, entityId, cmd))
                 return;
 
 
-            // Shop & RP commands (these should also localize internally later)
+
             if (CommandHandlerShop.TryHandle(playerId, entityId, cmd))
                 return;
 
@@ -157,7 +157,7 @@ namespace DMChatTeleport
             // ====================================================================
             // TELEPORT: /base
             // ====================================================================
-            if (cmd.Equals("/base", StringComparison.OrdinalIgnoreCase))
+            if (cmd.Equals("/base", StringComparison.OrdinalIgnoreCase)|| cmd.Equals("/b", StringComparison.OrdinalIgnoreCase))
             {
                 if (!teleportsEnabled)
                 {
@@ -194,7 +194,7 @@ namespace DMChatTeleport
             // ====================================================================
             // TELEPORT: /return
             // ====================================================================
-            if (cmd.Equals("/return", StringComparison.OrdinalIgnoreCase))
+            if (cmd.Equals("/return", StringComparison.OrdinalIgnoreCase)|| cmd.Equals("/r", StringComparison.OrdinalIgnoreCase))
             {
                 if (!teleportsEnabled)
                 {
@@ -222,8 +222,136 @@ namespace DMChatTeleport
             // ====================================================================
             // HELP COMMAND (Dynamic)
             // ====================================================================
-            if (cmd.Equals("/help", StringComparison.OrdinalIgnoreCase))
+            if (cmd.StartsWith("/help", StringComparison.OrdinalIgnoreCase))
             {
+                string rawHelp = cmd.Trim();
+                string[] helpParts = rawHelp.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // /help <topic>
+                if (helpParts.Length >= 2)
+                {
+                    string topic = helpParts[1].Trim().ToLowerInvariant();
+
+                    // =========================
+                    // Reward Points help
+                    // =========================
+                    if (topic == "rp" || topic == "reward" || topic == "rewards" || topic == "points" || topic == "wallet")
+                    {
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.rp.header"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.rp.balance"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.rp.shop"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.rp.buy"));
+                        return;
+                    }
+
+                    // =========================
+                    // Shop help
+                    // =========================
+                    if (topic == "shop" || topic == "buy")
+                    {
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.shop.header"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.shop.list"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.shop.buy"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.topic.shop.rp"));
+                        return;
+                    }
+
+                    // =========================
+                    // Teleport help
+                    // =========================
+                    if (topic == "setbase" || topic == "base" || topic == "return" || topic == "teleport" || topic == "tp")
+                    {
+                        if (!teleportsEnabled)
+                        {
+                            SendServerMessage(entityId, L.Get(lang, "cmd.teleport.disabled"));
+                            return;
+                        }
+
+                        // Show only the relevant teleport command(s)
+                        if (topic == "setbase" || topic == "teleport" || topic == "tp")
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.setbase"));
+
+                        if (topic == "base" || topic == "teleport" || topic == "tp")
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.base"));
+
+                        if (topic == "return" || topic == "teleport" || topic == "tp")
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.return"));
+
+                        return;
+                    }
+
+                    // =========================
+                    // Starter kits help
+                    // =========================
+                    if (topic == "starterkits" || topic == "kits" || topic == "liststarterkits" || topic == "pick")
+                    {
+                        if (!kitsEnabled)
+                        {
+                            SendServerMessage(entityId, L.Get(lang, "cmd.kits.disabled"));
+                            return;
+                        }
+
+                        // Show only the relevant kit command(s)
+                        if (topic == "starterkits" || topic == "kits" || topic == "liststarterkits")
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.liststarterkits"));
+
+                        if (topic == "starterkits" || topic == "kits" || topic == "pick")
+                        {
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.pick"));
+                            SendServerMessage(entityId, L.Get(lang, "cmd.help.pick_random"));
+                        }
+
+                        return;
+                    }
+
+                    // =========================
+                    // Language help
+                    // =========================
+                    if (topic == "lang" || topic == "language")
+                    {
+                        // keep it minimal + useful
+                        SendServerMessage(entityId, L.Get(lang, "lang.usage"));
+                        SendServerMessage(entityId, L.Get(lang, "lang.available"));
+                        return;
+                    }
+
+                    // =========================
+                    // Blood moon help
+                    // =========================
+                    if (topic == "isbloodmoon" || topic == "bloodmoon" || topic == "bm")
+                    {
+                        SendServerMessage(entityId, L.Get(lang, "cmd.help.isbloodmoon"));
+                        return;
+                    }
+
+                    // =========================
+                    // Admin help (admins only)
+                    // =========================
+                    if (topic == "admin")
+                    {
+                        if (IsAdmin(entityId))
+                        {
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.header"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.reloadconfig"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.addrp"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.setrp"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.rpof"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.players"));
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.tip"));
+                        }
+                        else
+                        {
+                            SendServerMessage(entityId, L.Get(lang, "admin.help.denied"));
+                        }
+                        return;
+                    }
+
+                    // IMPORTANT CHANGE:
+                    // Unknown topic => list nothing (no fallback to general help)
+                    return;
+                }
+
+                // /help (general)
                 SendServerMessage(entityId, L.Get(lang, "cmd.help.header"));
 
                 if (teleportsEnabled)
@@ -240,9 +368,25 @@ namespace DMChatTeleport
                     SendServerMessage(entityId, L.Get(lang, "cmd.help.pick_random"));
                 }
 
+                // Reward Points + Shop (always listed so all players know about them)
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.rp"));
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.shop"));
+                SendServerMessage(entityId, L.Get(lang, "cmd.help.buy"));
+
                 SendServerMessage(entityId, L.Get(lang, "cmd.help.lang"));
-                SendServerMessage(entityId, L.Get(lang, "cmd.help.reloadconfig"));
                 SendServerMessage(entityId, L.Get(lang, "cmd.help.isbloodmoon"));
+
+                // Admin-only commands (hidden from non-admins)
+                if (IsAdmin(entityId))
+                {
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.header"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.reloadconfig"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.addrp"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.setrp"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.rpof"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.players"));
+                    SendServerMessage(entityId, L.Get(lang, "admin.help.tip"));
+                }
 
                 return;
             }
@@ -252,18 +396,22 @@ namespace DMChatTeleport
             // ====================================================================
             if (!kitsEnabled && (cmd.StartsWith("/pick", StringComparison.OrdinalIgnoreCase) ||
                                 cmd.StartsWith("/choose", StringComparison.OrdinalIgnoreCase) ||
-                                cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase)))
+                                cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase) ||
+                                cmd.Equals("/starterkits", StringComparison.OrdinalIgnoreCase))
+                                )
             {
                 SendServerMessage(entityId, L.Get(lang, "cmd.kits.disabled"));
                 return;
             }
 
             // ====================================================================
-            // LIST STARTER KITS
+            // LIST STARTER KITS (BATCHED - NO DELAYS)
             // ====================================================================
-            if (cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase))
+            if (cmd.Equals("/liststarterkits", StringComparison.OrdinalIgnoreCase) ||
+                cmd.Equals("/starterkits", StringComparison.OrdinalIgnoreCase))
             {
-                if (StarterKitManager.Kits.Count == 0)
+                var kits = StarterKitManager.GetKitsNumbered();
+                if (kits.Count == 0)
                 {
                     SendServerMessage(entityId, L.Get(lang, "cmd.kits.none"));
                     return;
@@ -271,21 +419,49 @@ namespace DMChatTeleport
 
                 SendServerMessage(entityId, L.Get(lang, "cmd.kits.list.header"));
 
-                foreach (var kv in StarterKitManager.Kits)
+                const int chunkMax = 180; // keep well under your 240 cap
+                string chunk = "";
+
+                for (int idx = 0; idx < kits.Count; idx++)
                 {
-                    var kit = kv.Value;
-                    // Keep the kit name/description as-is (server-defined content). Only localize the wrapper.
-                    SendServerMessage(entityId, L.Format(lang, "cmd.kits.list.item",
-                        ("name", kit.Name),
-                        ("desc", kit.Description)
-                    ));
+                    var kit = kits[idx];
+                    int number = idx + 1;
+
+                    string line = L.Format(lang, "cmd.kits.list.item_numbered",
+                        ("num", number),
+                        ("name", kit?.Name ?? ""),
+                        ("desc", kit?.Description ?? "")
+                    );
+
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        Debug.LogWarning($"[DMChatTeleport] Blank kit line at #{number}. Name='{kit?.Name}'");
+                        continue;
+                    }
+
+                    // Put multiple entries in one message
+                    string add = (chunk.Length == 0) ? line : ("  |  " + line);
+
+                    if (chunk.Length + add.Length > chunkMax)
+                    {
+                        SendServerMessage(entityId, chunk);
+                        chunk = line;
+                    }
+                    else
+                    {
+                        chunk += add;
+                    }
                 }
 
+                if (!string.IsNullOrWhiteSpace(chunk))
+                    SendServerMessage(entityId, chunk);
+
+                SendServerMessage(entityId, L.Get(lang, "cmd.kits.pick_hint"));
                 return;
             }
 
             // ====================================================================
-            // PICK STARTER KIT
+            // PICK STARTER KIT (Choose number intead of name now)
             // ====================================================================
             if (cmd.StartsWith("/pick", StringComparison.OrdinalIgnoreCase) ||
                 cmd.StartsWith("/choose", StringComparison.OrdinalIgnoreCase))
@@ -293,14 +469,11 @@ namespace DMChatTeleport
                 string[] split = cmd.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (split.Length < 2)
                 {
-                    SendServerMessage(entityId, L.Get(lang, "cmd.pick.usage"));
+                    SendServerMessage(entityId, L.Get(lang, "cmd.pick.usage_numbered"));
                     return;
                 }
 
-                // Supports kit names with spaces if you ever want it later:
-                // /pick "Cool Kit Name"
-                // For now: join everything after /pick
-                string kitName = string.Join(" ", split, 1, split.Length - 1);
+                string arg = string.Join(" ", split, 1, split.Length - 1).Trim();
 
                 if (player.HasPickedStarterKit)
                 {
@@ -310,17 +483,18 @@ namespace DMChatTeleport
                     return;
                 }
 
-                StarterKit kit;
-
-                if (kitName.Equals("Random", StringComparison.OrdinalIgnoreCase))
+                var list = StarterKitManager.GetKitsNumbered();
+                if (list.Count == 0)
                 {
-                    var list = new List<StarterKit>(StarterKitManager.Kits.Values);
-                    if (list.Count == 0)
-                    {
-                        SendServerMessage(entityId, L.Get(lang, "cmd.kits.none"));
-                        return;
-                    }
+                    SendServerMessage(entityId, L.Get(lang, "cmd.kits.none"));
+                    return;
+                }
 
+                StarterKit kit = null;
+
+                // RANDOM
+                if (arg.Equals("Random", StringComparison.OrdinalIgnoreCase))
+                {
                     System.Random rnd = new System.Random();
                     kit = list[rnd.Next(list.Count)];
 
@@ -334,11 +508,24 @@ namespace DMChatTeleport
                 }
                 else
                 {
-                    if (!StarterKitManager.TryGetKit(kitName, out kit))
+                    // NUMBERED PICK
+                    if (!int.TryParse(arg, out int pickNumber))
                     {
-                        SendServerMessage(entityId, L.Get(lang, "cmd.pick.not_found"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.pick.invalid_number"));
+                        SendServerMessage(entityId, L.Get(lang, "cmd.pick.usage_numbered"));
                         return;
                     }
+
+                    if (pickNumber < 1 || pickNumber > list.Count)
+                    {
+                        SendServerMessage(entityId, L.Format(lang, "cmd.pick.number_out_of_range",
+                            ("min", 1),
+                            ("max", list.Count)
+                        ));
+                        return;
+                    }
+
+                    kit = list[pickNumber - 1];
                 }
 
                 EntityPlayer ep = world.GetEntity(entityId) as EntityPlayer;
@@ -386,7 +573,7 @@ namespace DMChatTeleport
                 }
 
                 player.HasPickedStarterKit = true;
-                player.PickedStarterKit = kit.Name;
+                player.PickedStarterKit = kit.Name; // continues storing name
                 PlayerStorage.Save();
 
                 return;
@@ -401,6 +588,7 @@ namespace DMChatTeleport
             );
         }
 
+        /*
         private static void SendServerMessage(int entityId, string msg)
         {
             if (string.IsNullOrEmpty(msg))
@@ -414,7 +602,41 @@ namespace DMChatTeleport
                 null
             );
         }
+        */
 
+
+        private static void SendServerMessage(int entityId, string msg)
+        {
+            if (string.IsNullOrEmpty(msg))
+                return;
+
+            // 1) Normalize to ONE LINE (console commands hate newlines)
+            msg = msg.Replace("\r", " ").Replace("\n", " ");
+
+            // 2) Strip other control chars (tabs, etc.)
+            // Keep normal text + your color tags.
+            var chars = msg.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+            {
+                if (char.IsControl(chars[i]))
+                    chars[i] = ' ';
+            }
+            msg = new string(chars);
+
+            // 3) Escape backslashes first, then quotes
+            msg = msg.Replace("\\", "\\\\");
+            msg = msg.Replace("\"", "\\\"");
+
+            // 4) Optional: cap length to avoid silent failures
+            const int maxLen = 240;
+            if (msg.Length > maxLen)
+                msg = msg.Substring(0, maxLen);
+
+            SdtdConsole.Instance.ExecuteSync(
+                $"sayplayer {entityId} \"{msg}\"",
+                null
+            );
+        }
         public static bool GiveItemToPlayer(int entityId, string itemName, int count, int quality = 1)
         {
             if (string.IsNullOrWhiteSpace(itemName) || count <= 0)
@@ -564,6 +786,32 @@ namespace DMChatTeleport
             player.LastTeleportUtcTicks = nowTicks;
             PlayerStorage.Save();
             return true;
+        }
+
+        private static bool IsAdmin(int entityId)
+        {
+            try
+            {
+                var ci = ConnectionManager.Instance?.Clients?.ForEntityId(entityId);
+                if (ci == null) return false;
+
+                int perm = GameManager.Instance.adminTools.Users.GetUserPermissionLevel(ci);
+                return perm == 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        private static string OneLine(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+
+            s = s.Replace("\r", " ").Replace("\n", " ");
+            var chars = s.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+                if (char.IsControl(chars[i])) chars[i] = ' ';
+            return new string(chars).Trim();
         }
     }
 }

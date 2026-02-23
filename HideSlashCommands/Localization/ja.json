@@ -1,5 +1,5 @@
 ﻿{
-  "bloodmoon.end.no_kills": "ブラッドムーンが終了しました！ キルは記録されませんでした。",
+  "bloodmoon.end.no_kills": "ブラッドムーン終了！キルは記録されませんでした。",
   "bloodmoon.end.title": "ブラッドムーン終了！",
   "bloodmoon.total_kills.header": "総キル数",
   "bloodmoon.total_kills.rank_line": "{rank}. {name} - {kills} キル",
@@ -12,119 +12,144 @@
   "bloodmoon.party.total": "パーティ合計キル数: {kills}",
 
   "bloodmoon.party.solo_title": "ソロ: {name}",
-  "bloodmoon.party.party_title": "パーティ（{count} 人）",
+  "bloodmoon.party.party_title": "パーティ（{count}人）",
   "bloodmoon.party.group_title": "グループ",
 
   "bloodmoon.rewards.default_reason": "報酬",
   "bloodmoon.rewards.message": "ブラッドムーン報酬: {reasons} = +{total} RP",
 
-  "bloodmoon.rewards.reason.presence": "参加ボーナス +{rp}",
-  "bloodmoon.rewards.reason.party_first": "パーティ1位（{partyTitle}） +{rp}",
-  "bloodmoon.rewards.reason.party_second": "パーティ2位（{partyTitle}） +{rp}",
-  "bloodmoon.rewards.reason.topkills_first": "最多キル1位 +{rp}",
-  "bloodmoon.rewards.reason.topkills_second": "最多キル2位 +{rp}",
-  "bloodmoon.rewards.reason.killbonus": "キルボーナス（{kills} キル） +{rp}",
+  "bloodmoon.rewards.reason.presence": "参加報酬 +{rp}",
+  "bloodmoon.rewards.reason.party_first": "パーティ1位 ({partyTitle}) +{rp}",
+  "bloodmoon.rewards.reason.party_second": "パーティ2位 ({partyTitle}) +{rp}",
+  "bloodmoon.rewards.reason.topkills_first": "キル数1位 +{rp}",
+  "bloodmoon.rewards.reason.topkills_second": "キル数2位 +{rp}",
+  "bloodmoon.rewards.reason.killbonus": "キルボーナス ({kills} キル) +{rp}",
 
   "lang.current": "現在の言語: {lang}",
-  "lang.available": "使用可能な言語: {list}",
-  "lang.usage": "使い方: /lang <コード>  （例: /lang ja）",
-  "lang.set": "言語を {lang} に設定しました",
-  "lang.invalid": "無効な言語コードです。使用可能: {list}",
+  "lang.available": "利用可能な言語: {list}",
+  "lang.usage": "使用方法: /lang <code>  (例: /lang en)",
+  "lang.set": "言語を {lang} に設定しました。",
+  "lang.invalid": "無効な言語コードです。利用可能: {list}",
 
-  "cmd.reloadconfig.ok": "設定を再読み込みしました。",
+  "cmd.reloadconfig.ok": "設定とスターターキットを再読み込みしました。",
 
   "cmd.teleport.disabled": "このサーバーではテレポートコマンドは無効です。",
   "cmd.teleport.cooldown": "テレポートはクールダウン中です。{seconds}秒後に再試行してください。",
 
   "cmd.setbase.ok": "拠点を設定しました！",
-  "cmd.base.no_base": "拠点が設定されていません。まず /setbase を使用してください。",
-  "cmd.base.ok": "拠点にテレポートしました。",
+  "cmd.base.no_base": "拠点が設定されていません。/setbase を使用してください。",
+  "cmd.base.ok": "拠点へテレポートしました。",
   "cmd.return.no_saved": "戻り位置が保存されていません。",
-  "cmd.return.ok": "元の場所に戻りました。",
+  "cmd.return.ok": "元の位置へ戻りました。",
 
   "cmd.help.header": "コマンド一覧:",
   "cmd.help.setbase": "/setbase - 拠点を設定",
-  "cmd.help.base": "/base - 拠点にテレポート",
-  "cmd.help.return": "/return - 以前の場所に戻る",
+  "cmd.help.base": "/base - 拠点へテレポート",
+  "cmd.help.return": "/return - 前の位置へ戻る",
   "cmd.help.liststarterkits": "/liststarterkits - スターターキット一覧",
-  "cmd.help.pick": "/pick <名前> - スターターキットを選択",
-  "cmd.help.pick_random": "/pick Random - ランダムでキットを選択（ボーナスあり）",
-  "cmd.help.lang": "/lang - 言語を表示/変更（例: /lang ja）",
-  "cmd.help.reloadconfig": "/reloadconfig - 設定を再読み込み",
-  "cmd.help.isbloodmoon": "/isbloodmoon - ブラッドムーン状態を表示",
+  "cmd.help.pick": "/pick <kit#> - スターターキットを選択",
+  "cmd.help.pick_random": "/pick Random - ランダムキットを選択（ボーナス付き）",
+  "cmd.help.lang": "/lang - 言語の表示/設定 (例: /lang en)",
 
-  "cmd.kits.disabled": "このサーバーではスターターキットは無効です。",
+  "cmd.help.isbloodmoon": "/isbloodmoon - ブラッドムーンの状態を表示",
+
+  "cmd.help.rp": "/rp, /wallet - RP残高を表示",
+  "cmd.help.shop": "/shop - ショップ一覧を表示",
+  "cmd.help.buy": "/buy <ShopItem#> <Quantity> - ショップから購入",
+
+  "cmd.help.topic.rp.header": "RP関連コマンド:",
+  "cmd.help.topic.rp.balance": "/rp または /wallet - 残高を表示",
+  "cmd.help.topic.rp.shop": "/shop - ショップを見る",
+  "cmd.help.topic.rp.buy": "/buy <ShopItem#> <Quantity> - 購入",
+
+  "cmd.help.topic.shop.header": "ショップコマンド:",
+  "cmd.help.topic.shop.list": "/shop - 商品一覧",
+  "cmd.help.topic.shop.buy": "/buy <ShopItem#> <Quantity> - 商品購入",
+  "cmd.help.topic.shop.rp": "/rp または /wallet - 残高表示",
+
+  "cmd.kits.disabled": "スターターキットは無効です。",
   "cmd.kits.none": "利用可能なスターターキットはありません。",
 
   "cmd.kits.list.header": "利用可能なスターターキット:",
   "cmd.kits.list.item": "- {name}: {desc}",
+  "cmd.kits.list.item_numbered": "{num}. {name} - {desc}",
+  "cmd.kits.pick_hint": "/pick <kit#> または /pick Random を入力してください。",
 
-  "cmd.pick.usage": "使い方: /pick <名前>",
-  "cmd.pick.already": "すでにスターターキットを選択しています: {kit}",
+  "cmd.pick.usage": "使用方法: /pick <kit#>",
+  "cmd.pick.usage_numbered": "使用方法: /pick <kit#>  (/starterkits で番号を確認できます)",
+  "cmd.pick.invalid_number": "無効なキット番号です。/starterkits で番号を確認してください。",
+  "cmd.pick.number_out_of_range": "そのキット番号は範囲外です。{min}-{max} の間で選択してください。",
+
+  "cmd.pick.already": "既にスターターキットを選択済みです: {kit}",
   "cmd.pick.not_found": "スターターキットが見つかりません。",
   "cmd.pick.random_selected": "ランダムスターターキットを選択しました: {kit}",
-  "cmd.pick.applied_header": "スターターキット「{kit}」を適用しました！ 配布アイテム:",
-  "cmd.pick.item_invalid": "{index}.（無効なアイテムをスキップ）",
-  "cmd.pick.item_ok": "{index}. {item}、数量:{qty}、品質:{q}",
-  "cmd.pick.item_skip": "{index}.（スキップ）{item} - 無効または未登録",
+  "cmd.pick.applied_header": "スターターキット '{kit}' を適用しました！ドロップアイテム:",
+  "cmd.pick.item_invalid": "{index}. (無効なアイテムエントリをスキップ)",
+  "cmd.pick.item_ok": "{index}. {item}, 数量:{qty}, 品質:{q}",
+  "cmd.pick.item_skip": "{index}. (スキップ) {item} - アイテムが無効",
 
-  "cmd.isbloodmoon.result": "ブラッドムーン有効: {active} | 日数={day} 時間={hour} | BM日={bmDay} | 夕暮れ={dusk} 夜明け={dawn}",
+  "cmd.isbloodmoon.result": "ブラッドムーン: {active} | 日数={day} 時間={hour} | BM日={bmDay} | 夕暮れ={dusk} 夜明け={dawn}",
 
-  "shop.rp.disabled": "このサーバーではRP（リワードポイント）は無効です。",
+  "shop.rp.disabled": "RPは無効です。",
   "shop.disabled": "ショップは無効です。",
-  "shop.empty": "ショップに有効なアイテムがありません。",
+  "shop.empty": "有効な商品はありません。",
 
-  "shop.wallet.line": "所持RP: {rp}",
-  "shop.items.header": "ショップアイテム:",
+  "shop.wallet.line": "残高: {rp} RP",
+  "shop.items.header": "ショップ商品:",
 
-  "shop.item.special_suffix": "（特別）",
-  "shop.item.line": "{index}. {key} - {cost} RP（数量 {qty}）{special}",
+  "shop.item.special_suffix": " (特別)",
+  "shop.item.line": "{index}. {key} - {cost} RP (数量 {qty}){special}",
 
-  "shop.buy.usage_short": "使い方: /buy <番号> [購入数]",
-  "shop.buy.usage": "使い方: /buy <番号> [購入数]",
-  "shop.buy.invalid_item_number": "無効なアイテム番号です。/shop で確認してください。",
-  "shop.buy.invalid_purchases": "無効な購入数です。（例: /buy 2 3）",
-  "shop.buy.out_of_range": "その番号は範囲外です。/shop（{min}-{max}）",
-  "shop.buy.too_large_cost": "購入金額が大きすぎます。",
+  "shop.buy.usage_short": "使用: /buy <ShopItem#> <Quantity>",
+  "shop.buy.usage": "使用方法: /buy <ShopItem#> <Quantity>",
+  "shop.buy.invalid_item_number": "無効な商品番号です。/shop で番号を確認してください。",
+  "shop.buy.invalid_purchases": "無効な購入形式です。例: /buy 2 3",
+  "shop.buy.out_of_range": "その商品番号は範囲外です。/shop ({min}-{max})",
+  "shop.buy.too_large_cost": "購入額が大きすぎます。",
   "shop.buy.too_large_qty": "購入数量が多すぎます。",
 
-  "shop.buy.limit_reached": "{key} の購入上限に達しました。許可数: {allowed}（既購入: {already}）",
-  "shop.buy.not_enough_rp": "RPが不足しています。必要: {cost}、所持: {have}",
-  "shop.buy.failed_refunded": "購入に失敗しました。RPは返却されました。",
-  "shop.buy.success": "{key} x{units} を購入しました（-{cost} RP）。残高: {wallet} RP",
+  "shop.buy.limit_reached": "{key} の購入上限に達しました。許可: {allowed}（既に {already} 購入済み）",
+  "shop.buy.not_enough_rp": "RP不足。必要: {cost}、所持: {have}。",
+  "shop.buy.failed_refunded": "購入失敗（付与できませんでした）。RPを返還しました。",
+  "shop.buy.success": "購入成功: {key} x{units} (-{cost} RP)。残高: {wallet} RP",
 
-  "shop.special.armor_q3_random.empty_pool": "armor_q3_random のプールが空です。",
+  "shop.special.armor_q3_random.empty_pool": "armor_q3_random の候補が空です。",
 
-  "shop.special.skill_token.no_entity": "プレイヤーエンティティが見つかりません。",
-  "shop.special.skill_token.no_progression": "進行データが現在利用できません。",
+  "shop.special.skill_token.no_entity": "プレイヤーエンティティが見つかりませんでした。",
+  "shop.special.skill_token.no_progression": "進行データを現在取得できません。",
   "shop.special.skill_token.granted": "スキルポイント {amount} を付与しました。",
   "shop.special.skill_token.failed_exception": "スキルポイント付与に失敗しました（例外）。",
+  "shop.special.clone_item.not_implemented": "clone_item は未実装です（要求 x{amount}）。",
+  "shop.special.reroll_item.not_implemented": "reroll_item は未実装です（要求 x{amount}）。",
 
-  "shop.special.clone_item.not_implemented": "clone_item は未実装です（要求数 x{amount}）。",
-  "shop.special.reroll_item.not_implemented": "reroll_item は未実装です（要求数 x{amount}）。",
+  "welcome.back": "おかえりなさい、{name}。RP残高: {rp}",
+  "welcome.kits_hint": "/starterkits で表示し、/pick <starterkit#> で取得できます。/pick Random はボーナス付きです。",
 
-  "welcome.back": "おかえりなさい、{name} さん。現在のRP: {rp}",
-  "welcome.kits_hint": "/starterkits でスターターキットを表示し、/pick <starterkit> で受け取れます。/pick Random を使うとランダムなキットと追加報酬がもらえます。",
-
-
-
-  "admin.addrp.usage": "使い方: /addrp <プレイヤー名|entityId|playerId> <数値>",
-  "admin.setrp.usage": "使い方: /setrp <プレイヤー名|entityId|playerId> <数値>",
-  "admin.rpof.usage": "使い方: /rpof <プレイヤー名|entityId|playerId>",
+  "admin.addrp.usage": "使用方法: /addrp <playerName|entityId|playerId> <amount>",
+  "admin.setrp.usage": "使用方法: /setrp <playerName|entityId|playerId> <amount>",
+  "admin.rpof.usage": "使用方法: /rpof <playerName|entityId|playerId>",
 
   "admin.amount.invalid": "無効な数値です。",
   "admin.target.not_found": "プレイヤーが見つかりません: {target}",
 
-  "admin.rp.updated": "RPを更新しました: {name} {amount}。新しい残高: {wallet} RP",
+  "admin.rp.updated": "RP更新: {name} {amount}。新しい残高: {wallet} RP",
   "admin.rp.updated_self": "管理者があなたのRPを更新しました: {amount}。新しい残高: {wallet} RP",
 
-  "admin.rp.set": "{name} のRPを {wallet} に設定しました。",
+  "admin.rp.set": "RP設定: {name} = {wallet} RP",
   "admin.rp.set_self": "管理者があなたのRPを {wallet} に設定しました。",
-
 
   "admin.rp.of": "{name} のRP: {wallet} RP",
 
-
   "admin.players.none": "接続中のプレイヤーはいません。",
-  "admin.players.list": "オンライン: {list}"
+  "admin.players.list": "オンライン: {list}",
+
+  "admin.help.header": "管理者コマンド:",
+  "admin.help.denied": "管理者コマンドを表示する権限がありません。",
+  "admin.help.tip": "ヒント: /help admin でいつでも管理者コマンドを表示できます。",
+
+  "admin.help.reloadconfig": "/reloadconfig - 設定を再読み込み",
+  "admin.help.addrp": "/addrp <playerName|entityId|playerId> <amount> - プレイヤーにRPを追加",
+  "admin.help.setrp": "/setrp <playerName|entityId|playerId> <amount> - プレイヤーのRPを設定",
+  "admin.help.rpof": "/rpof <playerName|entityId|playerId> - プレイヤーのRPを表示",
+  "admin.help.players": "/players - 接続中プレイヤー一覧"
 }
